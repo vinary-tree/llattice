@@ -1,0 +1,52 @@
+@startuml powerset-hasse
+' Hasse diagram of the powerset lattice of {1,2,3}, ordered by subset inclusion.
+' Edges point UPWARD (lower ⊑ higher): join = ∪ (climb up), meet = ∩ (descend).
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam ArrowColor       #6B7280
+skinparam ArrowThickness   1.1
+
+' ── Bottom: ⊥ = {} ─────────────────────────────────────────────
+rectangle "**{ }**\n⊥ (bottom)"      as EMPTY  #E5E7EB
+
+' ── Atoms: singletons ──────────────────────────────────────────
+rectangle "{1}"                       as S1     #DBEAFE
+rectangle "{2}"                       as S2     #DBEAFE
+rectangle "{3}"                       as S3     #DBEAFE
+
+' ── Coatoms: pairs ─────────────────────────────────────────────
+rectangle "{1,2}"                     as S12    #BFDBFE
+rectangle "{1,3}"                     as S13    #BFDBFE
+rectangle "{2,3}"                     as S23    #BFDBFE
+
+' ── Top: ⊤ = {1,2,3} ───────────────────────────────────────────
+rectangle "**{1,2,3}**\n⊤ (top)"     as FULL   #93C5FD
+
+' Covering relation, read bottom-to-top (lower ⊑ upper).
+EMPTY -up- S1
+EMPTY -up- S2
+EMPTY -up- S3
+
+S1 -up- S12
+S1 -up- S13
+S2 -up- S12
+S2 -up- S23
+S3 -up- S13
+S3 -up- S23
+
+S12 -up- FULL
+S13 -up- FULL
+S23 -up- FULL
+
+legend right
+  | Color | Meaning |
+  |<#93C5FD>| ⊤  top = {1,2,3} |
+  |<#BFDBFE>| pairs (coatoms) |
+  |<#DBEAFE>| singletons (atoms) |
+  |<#E5E7EB>| ⊥  bottom = { } |
+  | | join ⊔ = ∪  (move up) |
+  | | meet ⊓ = ∩  (move down) |
+endlegend
+@enduml

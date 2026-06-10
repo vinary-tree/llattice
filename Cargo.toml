@@ -1,0 +1,14 @@
+[package]
+name = "llattice"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.70"
+authors = ["Dylon Edwards <dylon.devo@gmail.com>"]
+license = "Apache-2.0"
+repository = "https://github.com/vinary-tree/llattice"
+description = "A minimal lattice trait (join/meet) with built-in implementations for integers, floats, bool, Option, HashSet, and Vec."
+keywords = ["lattice", "join", "meet", "semilattice", "crdt"]
+categories = ["data-structures", "algorithms"]
+readme = "README.md"
+
+[dependencies]
