@@ -1,0 +1,22 @@
+# Specialization hierarchy of order structures, most-general (bottom) to most-specific (top).
+# Each edge is labelled with the axiom that the child adds to the parent.
+# Render:  d2 lattice-taxonomy.d2 lattice-taxonomy.svg     Tool: D2 (uml_architecture, elk layout).
+direction: up
+
+poset: "Poset\n(⊑ reflexive, antisymmetric, transitive)" { style: { fill: "#E5E7EB"; stroke: "#374151" } }
+jsl:   "Join-semilattice\n(every pair has ⊔)"            { style: { fill: "#DBEAFE"; stroke: "#374151" } }
+msl:   "Meet-semilattice\n(every pair has ⊓)"            { style: { fill: "#DBEAFE"; stroke: "#374151" } }
+lat:   "Lattice\n(both ⊔ and ⊓)"                         { style: { fill: "#BFDBFE"; stroke: "#374151" } }
+bnd:   "Bounded lattice\n(least ⊥, greatest ⊤)"          { style: { fill: "#BFDBFE"; stroke: "#374151" } }
+cmp:   "Complete lattice\n(⊔S and ⊓S for every subset S)" { style: { fill: "#93C5FD"; stroke: "#374151" } }
+dist:  "Distributive lattice\n(⊓ distributes over ⊔)"     { style: { fill: "#93C5FD"; stroke: "#374151" } }
+bool:  "Boolean lattice\n(distributive + complemented)"   { style: { fill: "#60A5FA"; stroke: "#1E3A8A"; bold: true } }
+
+poset -> jsl: "+ all binary ⊔"   { style.stroke: "#16A34A" }
+poset -> msl: "+ all binary ⊓"   { style.stroke: "#16A34A" }
+jsl -> lat:   "+ all binary ⊓"   { style.stroke: "#16A34A" }
+msl -> lat:   "+ all binary ⊔"   { style.stroke: "#16A34A" }
+lat -> bnd:   "+ ⊥, ⊤"           { style.stroke: "#2563EB" }
+bnd -> cmp:   "+ arbitrary ⊔/⊓"  { style.stroke: "#2563EB" }
+bnd -> dist:  "+ distributivity" { style.stroke: "#2563EB" }
+dist -> bool: "+ complements ¬"  { style.stroke: "#2563EB" }

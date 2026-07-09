@@ -31,11 +31,25 @@ use std::hash::Hash;
 
 /// A lattice provides join (least upper bound) and meet (greatest lower bound) operations.
 ///
-/// Lattices satisfy the following properties:
-/// - **Idempotency**: `a.join(a) = a` and `a.meet(a) = a`
-/// - **Commutativity**: `a.join(b) = b.join(a)` and `a.meet(b) = b.meet(a)`
-/// - **Associativity**: `(a.join(b)).join(c) = a.join(b.join(c))` (same for meet)
-/// - **Absorption**: `a.join(a.meet(b)) = a` and `a.meet(a.join(b)) = a`
+/// A *lawful* lattice satisfies four laws — for all `a`, `b`, `c`:
+/// - **Idempotency**: `a.join(a) == a` and `a.meet(a) == a`
+/// - **Commutativity**: `a.join(b) == b.join(a)` and `a.meet(b) == b.meet(a)`
+/// - **Associativity**: `(a.join(b)).join(c) == a.join(&b.join(c))` (same for meet)
+/// - **Absorption**: `a.join(&a.meet(b)) == a` and `a.meet(&a.join(b)) == a`
+///
+/// The built-in impls satisfy all four **with two documented exceptions**:
+/// - `f32`/`f64` are lawful only on the `NaN`-free values: a `NaN` breaks idempotency under `==`
+///   (`NaN.join(&NaN)` is `NaN`, yet `NaN != NaN`) and the order (`NaN` is incomparable).
+/// - `Vec<T>` is a *join-semilattice up to content-equality* — `join`/`meet` are left-biased in
+///   ordering, so commutativity/associativity hold for the *set of elements*, not the `Vec` value:
+///   `[1, 2].join(&[2, 1])` is `[1, 2]`, while `[2, 1].join(&[1, 2])` is `[2, 1]`.
+///
+/// See the lawfulness matrix and proofs in `docs/theory/03-lawfulness-and-proofs.md`.
+///
+/// # Panics
+///
+/// None of the built-in implementations panic: `join`/`meet` are total on every input (including
+/// `NaN`, empty collections, and disjoint sets), contain no `unsafe`, and never `unwrap`/index/overflow.
 ///
 /// # Use Cases
 ///
@@ -107,7 +121,8 @@ macro_rules! impl_lattice_for_numeric {
 
 impl_lattice_for_numeric!(u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize);
 
-// f32: join = max, meet = min
+// f32: join = max, meet = min. Lawful only on NaN-free values: `f32::max(NaN, x) == x` silently
+// drops NaN, and `NaN != NaN` breaks idempotency under `==`. See docs/theory/03 §6.
 impl Lattice for f32 {
     #[inline]
     fn join(&self, other: &Self) -> Self {
@@ -120,7 +135,7 @@ impl Lattice for f32 {
     }
 }
 
-// f64: join = max, meet = min
+// f64: join = max, meet = min. Lawful only on NaN-free values (see the f32 note above and docs/theory/03 §6).
 impl Lattice for f64 {
     #[inline]
     fn join(&self, other: &Self) -> Self {
@@ -167,7 +182,9 @@ impl<T: Lattice> Lattice for Option<T> {
     }
 }
 
-// HashSet<T>: join = union, meet = intersection
+// HashSet<T>: join = union (∪), meet = intersection (∩); ⊥ = {}. A distributive lattice with bottom.
+// (The mathematical powerset 𝒫(U) is a complete atomic Boolean algebra; this runtime type has no ⊤
+// or complement over an unbounded element type.) See docs/theory/03 §4.
 impl<T: Clone + Eq + Hash + Send + Sync> Lattice for HashSet<T> {
     fn join(&self, other: &Self) -> Self {
         self.union(other).cloned().collect()
@@ -178,7 +195,9 @@ impl<T: Clone + Eq + Hash + Send + Sync> Lattice for HashSet<T> {
     }
 }
 
-// Vec<T>: join = concatenate + dedup (if T: Eq), meet = intersection (preserving order)
+// Vec<T>: a join-semilattice *up to content-equality*, NOT a full lattice on Vec values.
+// join = concat + dedup (order-preserving, left-biased); meet = intersection in self's order.
+// Left bias: [1,2].join(&[2,1]) == [1,2] != [2,1] == [2,1].join(&[1,2]). See docs/theory/03 §7.
 impl<T: Clone + Eq + Send + Sync> Lattice for Vec<T> {
     fn join(&self, other: &Self) -> Self {
         let mut result = self.clone();
@@ -197,6 +216,34 @@ impl<T: Clone + Eq + Send + Sync> Lattice for Vec<T> {
             .collect()
     }
 }
+
+// =============================================================================
+// Documentation doctests
+// =============================================================================
+//
+// Compile and run every ```rust block in the README and the guides as part of `cargo test`, so
+// every runnable example in this crate's documentation is verified on each test run. Gated on
+// `cfg(doctest)` so these helper items never appear in `cargo doc` output.
+
+#[cfg(doctest)]
+#[doc = include_str!("../README.md")]
+struct ReadmeDoctests;
+
+#[cfg(doctest)]
+#[doc = include_str!("../docs/guides/01-quickstart.md")]
+struct QuickstartDoctests;
+
+#[cfg(doctest)]
+#[doc = include_str!("../docs/guides/02-implementing-lattice.md")]
+struct ImplementingLatticeDoctests;
+
+#[cfg(doctest)]
+#[doc = include_str!("../docs/guides/03-crdt-cookbook.md")]
+struct CrdtCookbookDoctests;
+
+#[cfg(doctest)]
+#[doc = include_str!("../docs/guides/04-fixpoints-and-analysis.md")]
+struct FixpointsDoctests;
 
 #[cfg(test)]
 mod tests {

@@ -1,0 +1,31 @@
+# Why a shared leaf crate: without one, each member re-declares `Lattice`, so the same type
+# (e.g. HashSet) carries incompatible traits and any crate depending on two members hits a
+# coherence diamond. Extracting `Lattice` into one zero-dependency leaf gives a single source of truth.
+# Render:  d2 crate-family.d2 crate-family.svg     Tool: D2 (uml_architecture, dependency DAG).
+direction: right
+
+before: "Without a shared crate — incompatible traits ✗" {
+  style: { fill: "#FEF2F2"; stroke: "#FCA5A5"; font-color: "#B91C1C" }
+  dict: "libdictenstein\n(its own Lattice)" { style.fill: "#FCA5A5" }
+  lling: "lling-llang\n(its own Lattice)"   { style.fill: "#FCA5A5" }
+  hsA: "HashSet impl A" { style.fill: "#FEE2E2" }
+  hsB: "HashSet impl B" { style.fill: "#FEE2E2" }
+  dict -> hsA
+  lling -> hsB
+  hsA <-> hsB: "incompatible:\norphan rule / diamond" { style: { stroke: "#B91C1C"; stroke-dash: 4 } }
+}
+
+after: "With llattice — one canonical trait ✓" {
+  style: { fill: "#F0FDF4"; stroke: "#86EFAC"; font-color: "#166534" }
+  ll: "llattice\n(the one Lattice trait,\nzero dependencies)" { style: { fill: "#86EFAC"; stroke: "#16A34A"; bold: true } }
+  dict: "libdictenstein"  { style.fill: "#DBEAFE" }
+  lev:  "liblevenshtein"  { style.fill: "#DBEAFE" }
+  lling: "lling-llang"    { style.fill: "#DBEAFE" }
+  dual: "duallity"        { style.fill: "#DBEAFE" }
+  gram: "libgrammstein"   { style.fill: "#DBEAFE" }
+  dict -> ll: "depends on" { style.stroke: "#16A34A" }
+  lev -> ll  { style.stroke: "#16A34A" }
+  lling -> ll { style.stroke: "#16A34A" }
+  dual -> ll { style.stroke: "#16A34A" }
+  gram -> ll { style.stroke: "#16A34A" }
+}

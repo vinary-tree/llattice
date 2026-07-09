@@ -1,0 +1,29 @@
+// Option<T> as the LIFT (·)⊥ : adjoin a fresh bottom `None` below an isomorphic copy of any lattice T.
+//   join: None ⊔ x = x          (None is the identity for ⊔)
+//   meet: None ⊓ x = None       (None is the annihilator for ⊓)
+//   Some(a) ⊔ Some(b) = Some(a ⊔ b),   Some(a) ⊓ Some(b) = Some(a ⊓ b)
+// Render:  dot -Tsvg option-lift.dot -o option-lift.svg      Tool: Graphviz (graph_layout).
+digraph option_lift {
+    bgcolor = "white";
+    rankdir = BT;
+    ranksep = 0.55;
+    node [shape=box, style="rounded,filled", fontname="DejaVu Sans",
+          fontsize=12, color="#374151", penwidth=1.1];
+    edge [dir=none, color="#6B7280", penwidth=1.1];
+
+    none [label="None\n⊥ = fresh bottom", fillcolor="#E5E7EB"];
+
+    subgraph cluster_T {
+        label    = "Some(·): an isomorphic copy of any lattice T";
+        fontname = "DejaVu Sans"; fontsize = 11; fontcolor = "#5B21B6";
+        style    = "dashed,rounded"; color = "#C4B5FD"; penwidth = 1.6;
+        bgcolor  = "#FAF5FF";
+
+        botT [label="Some(⊥_T)", fillcolor="#DBEAFE"];
+        midT [label="Some(·)",   fillcolor="#BFDBFE", style="rounded,filled,dashed"];
+        topT [label="Some(⊤_T)", fillcolor="#93C5FD"];
+        botT -> midT; midT -> topT;
+    }
+
+    none -> botT [label="  new ⊑", fontsize=11, fontcolor="#6B7280"];
+}

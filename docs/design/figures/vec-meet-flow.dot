@@ -1,0 +1,24 @@
+// Control flow of Vec<T>::meet — intersection that preserves the LEFT operand's order (left-biased).
+// Render:  dot -Tsvg vec-meet-flow.dot -o vec-meet-flow.svg   Tool: Graphviz (flowchart).
+digraph vec_meet {
+    bgcolor = "white";
+    rankdir = TB;
+    nodesep = 0.45;
+    node [fontname="DejaVu Sans", fontsize=11, color="#374151", penwidth=1.1];
+    edge [fontname="DejaVu Sans", fontsize=10, color="#6B7280", fontcolor="#374151"];
+
+    start [label="self.meet(other)", shape=box, style="rounded,filled", fillcolor="#EDE9FE"];
+    loop  [label="for item in self", shape=diamond, style="filled", fillcolor="#FEF3C7"];
+    chk   [label="other.contains(item)?", shape=diamond, style="filled", fillcolor="#FEF3C7"];
+    keep  [label="keep item\n(in self's order)", shape=box, style="rounded,filled", fillcolor="#FCD34D", color="#B45309"];
+    drop  [label="drop item", shape=box, style="rounded,filled", fillcolor="#E5E7EB"];
+    done  [label="return intersection\n(in self's order)", shape=box, style="rounded,filled", fillcolor="#FCD34D", color="#B45309"];
+
+    start -> loop;
+    loop -> chk  [label="next item"];
+    chk  -> keep [label="yes — in both"];
+    chk  -> drop [label="no — only in self"];
+    keep -> loop [style=dashed, constraint=false];
+    drop -> loop [style=dashed, constraint=false];
+    loop -> done [label="exhausted"];
+}

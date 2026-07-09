@@ -32,7 +32,7 @@ llattice is a **leaf crate**: it has **zero dependencies** and imports nothing b
 
 ## The lattice laws
 
-`join` and `meet` are not arbitrary binary operations — they obey four laws that make them genuine lattice operations. The built-in impls satisfy all of them (where the element type's own `==` is well-behaved).
+`join` and `meet` are not arbitrary binary operations — they obey four laws that make them genuine lattice operations. The built-in impls satisfy all four, **with two documented exceptions**: `f32`/`f64` are lawful only on `NaN`-free values, and `Vec<T>` is a join-semilattice *up to content-equality* (its `join`/`meet` are left-biased in ordering). The precise, per-impl [**lawfulness matrix**](docs/theory/03-lawfulness-and-proofs.md) records exactly which law holds where.
 
 | Law | Join form | Meet form |
 |--------------------|-----------------------------------|-----------------------------------|
@@ -87,6 +87,8 @@ assert_eq!(s12.meet(&s23), [2].into_iter().collect());       // ⊓ = ∩ = {2}
 
 Implementing `Lattice` requires `Clone + Send + Sync`. The crate ships these blanket and concrete impls:
 
+<img src="docs/design/figures/lattice-class.png" alt="The Lattice trait and its built-in implementors; f64 and Vec carry lawfulness caveats" width="760"/>
+
 | Type | `join` (⊔, supremum) | `meet` (⊓, infimum) | Order `⊑` | Bounds |
 |------------------------------------------|----------------------------------|----------------------------------|------------|------------------|
 | `u8 … u128`, `usize`, `i8 … i128`, `isize` | `max`                          | `min`                            | `≤`        | `MIN` / `MAX`    |
@@ -96,10 +98,12 @@ Implementing `Lattice` requires `Clone + Send + Sync`. The crate ships these bla
 | `HashSet<T: Eq + Hash>`                  | `∪` (union)                      | `∩` (intersection)               | `⊆`        | `{}` = ⊥         |
 | `Vec<T: Eq>`                             | concat + dedup (order-preserving) | intersection (order-preserving)  | (see note) | `[]` = ⊥         |
 
+> **`f32`/`f64` caveat.** The float impls are a lattice (in fact a chain) only on the `NaN`-free extended reals `[−∞, +∞]` (`⊥ = −∞`, `⊤ = +∞`). `f64::max(NaN, x) = x` silently drops a `NaN`, and `NaN != NaN` breaks idempotency under `==`. Validate away `NaN` before merging — see [theory/03 §6](docs/theory/03-lawfulness-and-proofs.md) and [the security threat model](docs/engineering/03-security.md).
+
 Notes on the structural impls:
 
 - **`Option<T>` is the "lifted" lattice.** `join` keeps a value if either side has one (`None` acts as bottom — `None ⊔ x = x`); `meet` requires *both* sides to be present (`None ⊓ x = None`). When both are `Some`, it recurses: `Some(a) ⊔ Some(b) = Some(a ⊔ b)`. This is the standard way to adjoin a fresh `⊥` to any lattice `T`.
-- **`Vec<T>` is the deduplicating, order-preserving view.** `join` appends elements of the right operand not already present (`[3,1,2] ⊔ [4,2,1] = [3,1,2,4]`); `meet` keeps the left operand's elements that also appear in the right, in the left's order (`[3,1,2] ⊓ [4,2,1] = [1,2]`). Treat it as a set-with-insertion-order, not a free monoid: idempotency and commutativity hold up to set-equality of contents, but the *ordering* of `join` is left-biased.
+- **`Vec<T>` is the deduplicating, order-preserving view.** `join` appends elements of the right operand not already present (`[3,1,2] ⊔ [4,2,1] = [3,1,2,4]`); `meet` keeps the left operand's elements that also appear in the right, in the left's order (`[3,1,2] ⊓ [4,2,1] = [1,2]`). Treat it as a set-with-insertion-order, not a free monoid: idempotency and commutativity hold up to set-equality of contents, but the *ordering* of `join` is left-biased. Strictly, `Vec<T>` is a **join-semilattice on the content quotient**, *not* a full lattice on `Vec` values — `[1,2] ⊔ [2,1] = [1,2]` while `[2,1] ⊔ [1,2] = [2,1]`, and absorption fails on raw `Vec`. Reach for `HashSet` when you need a symmetric set lattice; details in [theory/03 §7](docs/theory/03-lawfulness-and-proofs.md).
 
 ```rust
 use llattice::Lattice;
@@ -166,6 +170,8 @@ assert_eq!(Version(7).join(&Version(4)), Version(7));
 
 A **join-semilattice** is the algebraic backbone of a **state-based CvRDT** (Convergent Replicated Data Type). In Shapiro et al.'s formulation, each replica holds a value drawn from a join-semilattice, and the merge of two replica states is their **join**. Because `⊔` is idempotent, commutative, and associative, replicas that have seen the same set of updates — *regardless of order, duplication, or batching* — converge to the **identical** state. No coordination, no conflict resolution, no consensus round-trip:
 
+<img src="docs/guides/figures/crdt-convergence.png" alt="Three replicas merging a grow-only set in different orders converge to the same state" width="640"/>
+
 ```rust
 use llattice::Lattice;
 use std::collections::HashSet;
@@ -202,6 +208,21 @@ For that reason the **semiring ↔ lattice bridge lives in [`lling-llang`](https
 ## Why a shared crate (not a local trait)?
 
 Rust's orphan rule means a trait can only be implemented for a foreign type by the crate that *defines the trait* or the crate that *defines the type*. If each member of the family declared its own `Lattice`, then `libdictenstein`'s `HashSet` lattice and `lling-llang`'s `HashSet` lattice would be **different, incompatible traits** — a value could not flow between them, and any crate depending on both would face a diamond. Extracting `Lattice` into a single zero-dependency leaf crate gives the whole family one canonical trait, one set of blanket impls, and one source of truth for what `join`/`meet` mean.
+
+---
+
+## Documentation
+
+In-depth documentation lives under [**`docs/`**](docs/README.md) — a guideline-driven suite with theory,
+design, guides, and engineering tracks, plus 17 fully-coloured diagrams rendered from committed sources.
+
+- **Theory** — [order theory](docs/theory/01-order-theory.md) · [lattices & the four laws](docs/theory/02-semilattices-lattices.md) · [lawfulness matrix & proofs](docs/theory/03-lawfulness-and-proofs.md) · [the semiring bridge](docs/theory/04-semiring-bridge.md)
+- **Design** — [architecture](docs/design/01-architecture.md) · [the orphan rule](docs/design/02-orphan-rule.md) · [per-impl semantics](docs/design/03-semantics.md) · [ADRs](docs/design/adr/)
+- **Guides** — [quickstart](docs/guides/01-quickstart.md) · [implementing `Lattice`](docs/guides/02-implementing-lattice.md) · [CRDT cookbook](docs/guides/03-crdt-cookbook.md) · [fixpoints & analysis](docs/guides/04-fixpoints-and-analysis.md)
+- **Engineering** — [testing](docs/engineering/01-testing.md) · [performance](docs/engineering/02-performance.md) · [security](docs/engineering/03-security.md)
+- **Reference** — [glossary](docs/GLOSSARY.md) · [diagram catalog](docs/diagrams/README.md) · [changelog](CHANGELOG.md)
+
+Diagrams are rebuilt from their text sources with `make -C docs/diagrams` (Graphviz · D2 · Mermaid · TikZ).
 
 ---
 

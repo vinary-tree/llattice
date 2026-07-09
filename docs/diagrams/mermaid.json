@@ -1,0 +1,7 @@
+{
+  "theme": "default",
+  "themeVariables": { "fontFamily": "DejaVu Sans, Verdana, Arial, sans-serif" },
+  "sequence": { "useMaxWidth": false },
+  "flowchart": { "useMaxWidth": false, "curve": "basis" },
+  "class": { "useMaxWidth": false }
+}

@@ -1,0 +1,50 @@
+%% Class/realization diagram: the `Lattice` trait and its built-in implementors.
+%% f64 and Vec<T> carry lawfulness caveats (red) — see the lawfulness matrix.
+%% Render:  mmdc -i lattice-class.mmd -o lattice-class.svg     Tool: Mermaid (uml_architecture).
+classDiagram
+    class Lattice {
+        <<trait>>
+        Clone + Send + Sync
+        +join(other: &Self) Self
+        +meet(other: &Self) Self
+    }
+    class Integers {
+        u8..u128, usize, i8..i128, isize
+        join = max,  meet = min
+    }
+    class Floats {
+        f32, f64
+        join = max,  meet = min
+    }
+    class Bool {
+        join = OR,  meet = AND
+    }
+    class OptionT {
+        Option~T: Lattice~
+        None = ⊥ (fresh bottom)
+    }
+    class HashSetT {
+        HashSet~T: Eq+Hash~
+        join = ∪,  meet = ∩
+    }
+    class VecT {
+        Vec~T: Eq~
+        join = concat+dedup,  meet = ∩
+    }
+    Lattice <|.. Integers : impl
+    Lattice <|.. Floats : impl
+    Lattice <|.. Bool : impl
+    Lattice <|.. OptionT : impl
+    Lattice <|.. HashSetT : impl
+    Lattice <|.. VecT : impl
+
+    note for Floats "lawful only on the NaN-free<br/>extended reals [−∞, +∞]"
+    note for VecT "join-semilattice up to content-equality;<br/>absorption fails on raw Vec"
+
+    style Lattice fill:#C4B5FD,stroke:#5B21B6,color:#1E1B4B
+    style Integers fill:#DBEAFE,stroke:#1E3A8A
+    style Bool fill:#DBEAFE,stroke:#1E3A8A
+    style OptionT fill:#DBEAFE,stroke:#1E3A8A
+    style HashSetT fill:#DBEAFE,stroke:#1E3A8A
+    style Floats fill:#FCA5A5,stroke:#B91C1C
+    style VecT fill:#FCA5A5,stroke:#B91C1C

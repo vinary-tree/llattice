@@ -1,0 +1,25 @@
+// Control flow of Vec<T>::join — order-preserving, deduplicating, left-biased concatenation.
+// Render:  dot -Tsvg vec-join-flow.dot -o vec-join-flow.svg   Tool: Graphviz (flowchart).
+digraph vec_join {
+    bgcolor = "white";
+    rankdir = TB;
+    nodesep = 0.45;
+    node [fontname="DejaVu Sans", fontsize=11, color="#374151", penwidth=1.1];
+    edge [fontname="DejaVu Sans", fontsize=10, color="#6B7280", fontcolor="#374151"];
+
+    start [label="self.join(other)", shape=box, style="rounded,filled", fillcolor="#EDE9FE"];
+    init  [label="result ← self.clone()", shape=box, style="filled", fillcolor="#F3F4F6"];
+    loop  [label="for item in other", shape=diamond, style="filled", fillcolor="#FEF3C7"];
+    chk   [label="result.contains(item)?", shape=diamond, style="filled", fillcolor="#FEF3C7"];
+    push  [label="result.push(item.clone())", shape=box, style="rounded,filled", fillcolor="#86EFAC", color="#16A34A"];
+    skip  [label="skip (idempotent)", shape=box, style="rounded,filled", fillcolor="#E5E7EB"];
+    done  [label="return result", shape=box, style="rounded,filled", fillcolor="#86EFAC", color="#16A34A"];
+
+    start -> init -> loop;
+    loop -> chk  [label="next item"];
+    chk  -> push [label="no — new element"];
+    chk  -> skip [label="yes — already present"];
+    push -> loop [style=dashed, constraint=false];
+    skip -> loop [style=dashed, constraint=false];
+    loop -> done [label="exhausted"];
+}

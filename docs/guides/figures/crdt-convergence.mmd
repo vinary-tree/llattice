@@ -1,0 +1,20 @@
+%% State-based CvRDT convergence: three replicas of a grow-only set (G-Set) exchange states by gossip
+%% and merge with join (∪). Because ⊔ is idempotent, commutative, and associative, every replica that
+%% has seen the same updates converges to the IDENTICAL state — regardless of order, duplication, or batching.
+%% Render:  mmdc -i crdt-convergence.mmd -o crdt-convergence.svg     Tool: Mermaid (sequenceDiagram).
+sequenceDiagram
+    autonumber
+    participant R1 as Replica 1
+    participant R2 as Replica 2
+    participant R3 as Replica 3
+    Note over R1,R3: each replica holds a G-Set, merged by join = ∪
+    R1->>R1: local add → {alice}
+    R2->>R2: local add → {bob, carol}
+    R3->>R3: local add → {alice, bob}
+    R2->>R1: gossip {bob, carol}
+    R1->>R1: join → {alice, bob, carol}
+    R3->>R1: gossip {alice, bob} (overlaps — idempotent)
+    R1->>R1: join → {alice, bob, carol} (no change)
+    R1->>R3: gossip {alice, bob, carol}
+    R3->>R3: join → {alice, bob, carol}
+    Note over R1,R3: any order / duplication / batching → identical state ✓ (convergence)

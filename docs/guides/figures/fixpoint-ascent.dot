@@ -1,0 +1,23 @@
+// Kleene ascending chain: iterating a monotone map f from ⊥ climbs the lattice
+//   ⊥ ⊑ f(⊥) ⊑ f²(⊥) ⊑ … ⊑ lfp f,   stabilising at the least fixed point  lfp f = f(lfp f).
+// Foundational to dataflow analysis, abstract interpretation, and Datalog evaluation.
+// Render:  dot -Tsvg fixpoint-ascent.dot -o fixpoint-ascent.svg   Tool: Graphviz (graph_layout).
+digraph fixpoint_ascent {
+    bgcolor = "white";
+    rankdir = LR;
+    node [shape=box, style="rounded,filled", fontname="DejaVu Sans",
+          fontsize=11, color="#374151", penwidth=1.1];
+    edge [color="#6B7280", penwidth=1.2, fontname="DejaVu Sans", fontsize=10, fontcolor="#6B7280"];
+
+    bot [label="⊥",        fillcolor="#E5E7EB"];
+    f1  [label="f(⊥)",     fillcolor="#DBEAFE"];
+    f2  [label="f²(⊥)",    fillcolor="#BFDBFE"];
+    f3  [label="f³(⊥)",    fillcolor="#93C5FD"];
+    lfp [label="lfp f\n(least fixed point)", fillcolor="#86EFAC", color="#16A34A"];
+
+    bot -> f1 [label="⊑"];
+    f1  -> f2 [label="⊑"];
+    f2  -> f3 [label="⊑"];
+    f3  -> lfp [label="⊑ …"];
+    lfp -> lfp [label="f (stable)", color="#16A34A", fontcolor="#16A34A"];
+}

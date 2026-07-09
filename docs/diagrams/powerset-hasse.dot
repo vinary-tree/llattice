@@ -1,0 +1,40 @@
+// Hasse diagram of the powerset lattice of {1,2,3}, ordered by subset inclusion (⊆).
+// Covering edges are drawn UPWARD (lower ⊑ higher): join = ∪ climbs up, meet = ∩ descends.
+// Canonical source for docs/diagrams/powerset-hasse.svg.
+// Render:  dot -Tsvg powerset-hasse.dot -o powerset-hasse.svg
+// Tool:    Graphviz (graph_layout) — `rank=same` per cardinality pins exact order levels.
+digraph powerset_hasse {
+    bgcolor   = "white";
+    rankdir   = BT;                       // ⊥ at the bottom, ⊤ at the top
+    nodesep   = 0.35;
+    ranksep   = 0.55;
+    node [shape=box, style="rounded,filled", fontname="DejaVu Sans",
+          fontsize=12, color="#374151", penwidth=1.1];
+    edge [dir=none, color="#6B7280", penwidth=1.1];   // plain lines = covering relation
+
+    // ── ⊥ = {} (bottom) ───────────────────────────────────────────────
+    empty [label="{ }\n⊥ (bottom)", fillcolor="#E5E7EB"];
+
+    // ── atoms: singletons ─────────────────────────────────────────────
+    s1 [label="{1}", fillcolor="#DBEAFE"];
+    s2 [label="{2}", fillcolor="#DBEAFE"];
+    s3 [label="{3}", fillcolor="#DBEAFE"];
+
+    // ── coatoms: pairs ────────────────────────────────────────────────
+    s12 [label="{1,2}", fillcolor="#BFDBFE"];
+    s13 [label="{1,3}", fillcolor="#BFDBFE"];
+    s23 [label="{2,3}", fillcolor="#BFDBFE"];
+
+    // ── ⊤ = {1,2,3} (top) ─────────────────────────────────────────────
+    full [label="{1,2,3}\n⊤ (top)", fillcolor="#93C5FD"];
+
+    // Covering relation, read bottom-to-top (lower ⊑ upper).
+    empty -> s1; empty -> s2; empty -> s3;
+    s1 -> s12; s1 -> s13;
+    s2 -> s12; s2 -> s23;
+    s3 -> s13; s3 -> s23;
+    s12 -> full; s13 -> full; s23 -> full;
+
+    { rank=same; s1; s2; s3; }            // level 1 (|S| = 1)
+    { rank=same; s12; s13; s23; }         // level 2 (|S| = 2)
+}

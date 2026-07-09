@@ -1,1 +1,123 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentStyleType="text/css" data-diagram-type="DESCRIPTION" height="531px" preserveAspectRatio="none" style="width:279px;height:531px;background:#FFFFFF;" version="1.1" viewBox="0 0 279 531" width="279px" zoomAndPan="magnify"><?plantuml $version$?><defs/><g><!--entity EMPTY--><g class="entity" data-qualified-name="EMPTY" data-source-line="11" id="ent0001"><rect fill="#E5E7EB" height="52.5938" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="98.2031" x="86.9551" y="312.19"/><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" font-weight="700" lengthAdjust="spacing" textLength="24.8076" x="96.9551" y="335.1851">{ }</text><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="78.2031" x="96.9551" y="351.482">&#8869; (bottom)</text></g><!--entity S1--><g class="entity" data-qualified-name="S1" data-source-line="14" id="ent0002"><rect fill="#DBEAFE" height="36.2969" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="46.7217" x="194.6951" y="215.89"/><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="26.7217" x="204.6951" y="238.8851">{1}</text></g><!--entity S2--><g class="entity" data-qualified-name="S2" data-source-line="15" id="ent0003"><rect fill="#DBEAFE" height="36.2969" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="46.7217" x="112.6951" y="215.89"/><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="26.7217" x="122.6951" y="238.8851">{2}</text></g><!--entity S3--><g class="entity" data-qualified-name="S3" data-source-line="16" id="ent0004"><rect fill="#DBEAFE" height="36.2969" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="46.7217" x="30.6951" y="215.89"/><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="26.7217" x="40.6951" y="238.8851">{3}</text></g><!--entity S12--><g class="entity" data-qualified-name="S12" data-source-line="19" id="ent0005"><rect fill="#BFDBFE" height="36.2969" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="60.0791" x="201.0151" y="119.59"/><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="40.0791" x="211.0151" y="142.5851">{1,2}</text></g><!--entity S13--><g class="entity" data-qualified-name="S13" data-source-line="20" id="ent0006"><rect fill="#BFDBFE" height="36.2969" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="60.0791" x="106.0151" y="119.59"/><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="40.0791" x="116.0151" y="142.5851">{1,3}</text></g><!--entity S23--><g class="entity" data-qualified-name="S23" data-source-line="21" id="ent0007"><rect fill="#BFDBFE" height="36.2969" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="60.0791" x="11.0151" y="119.59"/><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="40.0791" x="21.0151" y="142.5851">{2,3}</text></g><!--entity FULL--><g class="entity" data-qualified-name="FULL" data-source-line="24" id="ent0008"><rect fill="#93C5FD" height="52.5938" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="79.7939" x="96.1551" y="7"/><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" font-weight="700" lengthAdjust="spacing" textLength="59.7939" x="106.1551" y="29.9951">{1,2,3}</text><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="50.5107" x="106.1551" y="46.292">&#8868; (top)</text></g><!--link S1 to EMPTY--><g class="link" data-entity-1="ent0002" data-entity-2="ent0001" data-link-type="association" data-source-line="27" id="lnk10"><path d="M204.1451,252.42 C191.0751,268.74 171.3651,293.37 156.5051,311.94" fill="none" id="S1-EMPTY" style="stroke:#6B7280;stroke-width:1.1;"/></g><!--link S2 to EMPTY--><g class="link" data-entity-1="ent0003" data-entity-2="ent0001" data-link-type="association" data-source-line="28" id="lnk12"><path d="M136.0551,252.42 C136.0551,268.74 136.0551,293.37 136.0551,311.94" fill="none" id="S2-EMPTY" style="stroke:#6B7280;stroke-width:1.1;"/></g><!--link S3 to EMPTY--><g class="link" data-entity-1="ent0004" data-entity-2="ent0001" data-link-type="association" data-source-line="29" id="lnk14"><path d="M67.9651,252.42 C81.0351,268.74 100.7451,293.37 115.6051,311.94" fill="none" id="S3-EMPTY" style="stroke:#6B7280;stroke-width:1.1;"/></g><!--link S12 to S1--><g class="link" data-entity-1="ent0005" data-entity-2="ent0002" data-link-type="association" data-source-line="31" id="lnk16"><path d="M228.6751,156.04 C226.3351,172.94 222.8051,198.55 220.4651,215.53" fill="none" id="S12-S1" style="stroke:#6B7280;stroke-width:1.1;"/></g><!--link S13 to S1--><g class="link" data-entity-1="ent0006" data-entity-2="ent0002" data-link-type="association" data-source-line="32" id="lnk18"><path d="M151.0951,156.04 C165.7951,172.94 188.0651,198.55 202.8351,215.53" fill="none" id="S13-S1" style="stroke:#6B7280;stroke-width:1.1;"/></g><!--link S12 to S2--><g class="link" data-entity-1="ent0005" data-entity-2="ent0003" data-link-type="association" data-source-line="33" id="lnk20"><path d="M213.6351,156.04 C196.5951,172.94 170.7951,198.55 153.6951,215.53" fill="none" id="S12-S2" style="stroke:#6B7280;stroke-width:1.1;"/></g><!--link S23 to S2--><g class="link" data-entity-1="ent0007" data-entity-2="ent0003" data-link-type="association" data-source-line="34" id="lnk22"><path d="M58.4751,156.04 C75.5151,172.94 101.3151,198.55 118.4151,215.53" fill="none" id="S23-S2" style="stroke:#6B7280;stroke-width:1.1;"/></g><!--link S13 to S3--><g class="link" data-entity-1="ent0006" data-entity-2="ent0004" data-link-type="association" data-source-line="35" id="lnk24"><path d="M121.0151,156.04 C106.3151,172.94 84.0451,198.55 69.2751,215.53" fill="none" id="S13-S3" style="stroke:#6B7280;stroke-width:1.1;"/></g><!--link S23 to S3--><g class="link" data-entity-1="ent0007" data-entity-2="ent0004" data-link-type="association" data-source-line="36" id="lnk26"><path d="M43.4351,156.04 C45.7651,172.94 49.3051,198.55 51.6451,215.53" fill="none" id="S23-S3" style="stroke:#6B7280;stroke-width:1.1;"/></g><!--link FULL to S12--><g class="link" data-entity-1="ent0008" data-entity-2="ent0005" data-link-type="association" data-source-line="38" id="lnk28"><path d="M159.7851,59.88 C176.9251,78.37 199.6451,102.87 214.7751,119.18" fill="none" id="FULL-S12" style="stroke:#6B7280;stroke-width:1.1;"/></g><!--link FULL to S13--><g class="link" data-entity-1="ent0008" data-entity-2="ent0006" data-link-type="association" data-source-line="39" id="lnk30"><path d="M136.0551,59.88 C136.0551,78.37 136.0551,102.87 136.0551,119.18" fill="none" id="FULL-S13" style="stroke:#6B7280;stroke-width:1.1;"/></g><!--link FULL to S23--><g class="link" data-entity-1="ent0008" data-entity-2="ent0007" data-link-type="association" data-source-line="40" id="lnk32"><path d="M112.3251,59.88 C95.1851,78.37 72.4651,102.87 57.3351,119.18" fill="none" id="FULL-S23" style="stroke:#6B7280;stroke-width:1.1;"/></g><g class="legend" data-source-line="42"><rect fill="none" height="128.0781" rx="7.5" ry="7.5" style="stroke:#000000;stroke-width:1;" width="248.1094" x="12" y="384.7837"/><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="36.5518" x="21.4502" y="404.7789">Color</text><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="59.7939" x="66.9023" y="404.7789">Meaning</text><rect fill="#93C5FD" height="16.2969" style="stroke:none;stroke-width:1;" width="45.4521" x="17" y="408.0806"/><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="4.4502" x="17" y="421.0757">&#160;</text><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="118.1045" x="66.9023" y="421.0757">&#8868;  top = {1,2,3}</text><rect fill="#BFDBFE" height="16.2969" style="stroke:none;stroke-width:1;" width="45.4521" x="17" y="424.3775"/><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="4.4502" x="17" y="437.3726">&#160;</text><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="109.6074" x="66.9023" y="437.3726">pairs (coatoms)</text><rect fill="#DBEAFE" height="16.2969" style="stroke:none;stroke-width:1;" width="45.4521" x="17" y="440.6744"/><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="4.4502" x="17" y="453.6695">&#160;</text><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="130.6074" x="66.9023" y="453.6695">singletons (atoms)</text><rect fill="#E5E7EB" height="16.2969" style="stroke:none;stroke-width:1;" width="45.4521" x="17" y="456.9712"/><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="4.4502" x="17" y="469.9664">&#160;</text><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="114.625" x="66.9023" y="469.9664">&#8869;  bottom = { }</text><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="4.4502" x="17" y="486.2632">&#160;</text><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="152.6055" x="66.9023" y="486.2632">join &#8852; = &#8746;  (move up)</text><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="4.4502" x="17" y="502.5601">&#160;</text><text fill="#000000" font-family="'DejaVu Sans'" font-size="14" lengthAdjust="spacing" textLength="183.7568" x="66.9023" y="502.5601">meet &#8851; = &#8745;  (move down)</text><line style="stroke:#000000;stroke-width:1;" x1="17" x2="255.1094" y1="391.7837" y2="391.7837"/><line style="stroke:#000000;stroke-width:1;" x1="17" x2="255.1094" y1="408.0806" y2="408.0806"/><line style="stroke:#000000;stroke-width:1;" x1="17" x2="255.1094" y1="424.3775" y2="424.3775"/><line style="stroke:#000000;stroke-width:1;" x1="17" x2="255.1094" y1="440.6744" y2="440.6744"/><line style="stroke:#000000;stroke-width:1;" x1="17" x2="255.1094" y1="456.9712" y2="456.9712"/><line style="stroke:#000000;stroke-width:1;" x1="17" x2="255.1094" y1="473.2681" y2="473.2681"/><line style="stroke:#000000;stroke-width:1;" x1="17" x2="255.1094" y1="489.565" y2="489.565"/><line style="stroke:#000000;stroke-width:1;" x1="17" x2="255.1094" y1="505.8619" y2="505.8619"/><line style="stroke:#000000;stroke-width:1;" x1="17" x2="17" y1="391.7837" y2="505.8619"/><line style="stroke:#000000;stroke-width:1;" x1="62.4521" x2="62.4521" y1="391.7837" y2="505.8619"/><line style="stroke:#000000;stroke-width:1;" x1="255.1094" x2="255.1094" y1="391.7837" y2="505.8619"/></g><?plantuml-src pLNDZjem4BxxAKRBOGC2L19jjqLj9Nw2UjYjLbssLQLUJ692bc17jbDK0LAF5RUg-mYxX_QnU9AEusm9My6rE3dOusziVsD_CwVmbYh588nf9EaCn1ZqX44gvamgfY6XMiS1C_P5g-xMlLKTX0oPP26CleBAHWOLyo39L2nuavo27qPCuGenrt1pzR7plWzEOjQ3pVe7JE9emcIr3RS8WDUm-VuRd229PoF8qceTPWpNC-PVu8HC1Oo7rIOXQXhpb9eJZcWmZQJ8UDWJYP1G6UIjX50J6efvp2COqqInqap8nZHBz41m_OxE69pqsItzaC4rvUgaXEj8AUPsUTigpxldxejdJo73IHnCELCA8QrcYo3xpTqt_A4hj1QpDb9-G3QBLM7_xp-HBD2KHmcIhzKMiAhLFdDpI6UKdxXwOWbJ1VxbrV0JKlVF_7E_M-BMGPngWuhDCbfm1SV3QT5Q5Gp-QKZfkcLliz_rEmD_nyyzwEVkzVCE-daxVjiGzWIrGKnfBDKnFWwZzZtKya3c4Qbq1_tkau2qwjuXFs-VdtlGpztnsmPoA58ZidiZCfkVuDWqPezbTNOFZXPf8JBaDRYvk32yNdgziq7VyEg9BqoQt2KPvbvCgNNiKKoskJmRMk2VbXDgbgQOJvl4ohMHfGsCyix8tHbvXA0C2fnRwdi4d_dM_jXtqUwLCDxMJimpo4U61p6NMngvvH59M8If72IcVqq0bc3Jwn8k6UM6xz9ONnMHUBFCBnKCr-tD5X3x211YnUC4LapLntchDfmlPIXd5s9pMhxB0nInDHj1iGb-UNtQhE-A6WNE36_6rAY_YBnKRTO_Yt9L8B3qS8D1jfRp7m00?></g></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 14.1.5 (0)
+ -->
+<!-- Title: powerset_hasse Pages: 1 -->
+<svg width="220pt" height="273pt"
+ viewBox="0.00 0.00 220.00 273.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 269)">
+<title>powerset_hasse</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-269 216,-269 216,4 -4,4"/>
+<!-- empty -->
+<g id="node1" class="node">
+<title>empty</title>
+<path fill="#e5e7eb" stroke="#374151" stroke-width="1.1" d="M135.38,-36.5C135.38,-36.5 76.62,-36.5 76.62,-36.5 70.62,-36.5 64.62,-30.5 64.62,-24.5 64.62,-24.5 64.62,-12 64.62,-12 64.62,-6 70.62,0 76.62,0 76.62,0 135.38,0 135.38,0 141.38,0 147.38,-6 147.38,-12 147.38,-12 147.38,-24.5 147.38,-24.5 147.38,-30.5 141.38,-36.5 135.38,-36.5"/>
+<text xml:space="preserve" text-anchor="middle" x="106" y="-21.1" font-family="DejaVu Sans" font-size="12.00">{ }</text>
+<text xml:space="preserve" text-anchor="middle" x="106" y="-6.85" font-family="DejaVu Sans" font-size="12.00">⊥ (bottom)</text>
+</g>
+<!-- s1 -->
+<g id="node2" class="node">
+<title>s1</title>
+<path fill="#dbeafe" stroke="#374151" stroke-width="1.1" d="M42,-112.5C42,-112.5 12,-112.5 12,-112.5 6,-112.5 0,-106.5 0,-100.5 0,-100.5 0,-88.5 0,-88.5 0,-82.5 6,-76.5 12,-76.5 12,-76.5 42,-76.5 42,-76.5 48,-76.5 54,-82.5 54,-88.5 54,-88.5 54,-100.5 54,-100.5 54,-106.5 48,-112.5 42,-112.5"/>
+<text xml:space="preserve" text-anchor="middle" x="27" y="-90.22" font-family="DejaVu Sans" font-size="12.00">{1}</text>
+</g>
+<!-- empty&#45;&gt;s1 -->
+<g id="edge1" class="edge">
+<title>empty&#45;&gt;s1</title>
+<path fill="none" stroke="#6b7280" stroke-width="1.1" d="M87.28,-36.85C74.68,-48.68 58.15,-64.22 45.59,-76.03"/>
+</g>
+<!-- s2 -->
+<g id="node3" class="node">
+<title>s2</title>
+<path fill="#dbeafe" stroke="#374151" stroke-width="1.1" d="M121,-112.5C121,-112.5 91,-112.5 91,-112.5 85,-112.5 79,-106.5 79,-100.5 79,-100.5 79,-88.5 79,-88.5 79,-82.5 85,-76.5 91,-76.5 91,-76.5 121,-76.5 121,-76.5 127,-76.5 133,-82.5 133,-88.5 133,-88.5 133,-100.5 133,-100.5 133,-106.5 127,-112.5 121,-112.5"/>
+<text xml:space="preserve" text-anchor="middle" x="106" y="-90.22" font-family="DejaVu Sans" font-size="12.00">{2}</text>
+</g>
+<!-- empty&#45;&gt;s2 -->
+<g id="edge2" class="edge">
+<title>empty&#45;&gt;s2</title>
+<path fill="none" stroke="#6b7280" stroke-width="1.1" d="M106,-36.85C106,-48.68 106,-64.22 106,-76.03"/>
+</g>
+<!-- s3 -->
+<g id="node4" class="node">
+<title>s3</title>
+<path fill="#dbeafe" stroke="#374151" stroke-width="1.1" d="M200,-112.5C200,-112.5 170,-112.5 170,-112.5 164,-112.5 158,-106.5 158,-100.5 158,-100.5 158,-88.5 158,-88.5 158,-82.5 164,-76.5 170,-76.5 170,-76.5 200,-76.5 200,-76.5 206,-76.5 212,-82.5 212,-88.5 212,-88.5 212,-100.5 212,-100.5 212,-106.5 206,-112.5 200,-112.5"/>
+<text xml:space="preserve" text-anchor="middle" x="185" y="-90.22" font-family="DejaVu Sans" font-size="12.00">{3}</text>
+</g>
+<!-- empty&#45;&gt;s3 -->
+<g id="edge3" class="edge">
+<title>empty&#45;&gt;s3</title>
+<path fill="none" stroke="#6b7280" stroke-width="1.1" d="M124.72,-36.85C137.32,-48.68 153.85,-64.22 166.41,-76.03"/>
+</g>
+<!-- s12 -->
+<g id="node5" class="node">
+<title>s12</title>
+<path fill="#bfdbfe" stroke="#374151" stroke-width="1.1" d="M42,-188.5C42,-188.5 12,-188.5 12,-188.5 6,-188.5 0,-182.5 0,-176.5 0,-176.5 0,-164.5 0,-164.5 0,-158.5 6,-152.5 12,-152.5 12,-152.5 42,-152.5 42,-152.5 48,-152.5 54,-158.5 54,-164.5 54,-164.5 54,-176.5 54,-176.5 54,-182.5 48,-188.5 42,-188.5"/>
+<text xml:space="preserve" text-anchor="middle" x="27" y="-166.22" font-family="DejaVu Sans" font-size="12.00">{1,2}</text>
+</g>
+<!-- s1&#45;&gt;s12 -->
+<g id="edge4" class="edge">
+<title>s1&#45;&gt;s12</title>
+<path fill="none" stroke="#6b7280" stroke-width="1.1" d="M27,-113.04C27,-124.83 27,-140.32 27,-152.09"/>
+</g>
+<!-- s13 -->
+<g id="node6" class="node">
+<title>s13</title>
+<path fill="#bfdbfe" stroke="#374151" stroke-width="1.1" d="M121,-188.5C121,-188.5 91,-188.5 91,-188.5 85,-188.5 79,-182.5 79,-176.5 79,-176.5 79,-164.5 79,-164.5 79,-158.5 85,-152.5 91,-152.5 91,-152.5 121,-152.5 121,-152.5 127,-152.5 133,-158.5 133,-164.5 133,-164.5 133,-176.5 133,-176.5 133,-182.5 127,-188.5 121,-188.5"/>
+<text xml:space="preserve" text-anchor="middle" x="106" y="-166.22" font-family="DejaVu Sans" font-size="12.00">{1,3}</text>
+</g>
+<!-- s1&#45;&gt;s13 -->
+<g id="edge5" class="edge">
+<title>s1&#45;&gt;s13</title>
+<path fill="none" stroke="#6b7280" stroke-width="1.1" d="M45.72,-113.04C58.32,-124.83 74.85,-140.32 87.41,-152.09"/>
+</g>
+<!-- s2&#45;&gt;s12 -->
+<g id="edge6" class="edge">
+<title>s2&#45;&gt;s12</title>
+<path fill="none" stroke="#6b7280" stroke-width="1.1" d="M87.28,-113.04C74.68,-124.83 58.15,-140.32 45.59,-152.09"/>
+</g>
+<!-- s23 -->
+<g id="node7" class="node">
+<title>s23</title>
+<path fill="#bfdbfe" stroke="#374151" stroke-width="1.1" d="M200,-188.5C200,-188.5 170,-188.5 170,-188.5 164,-188.5 158,-182.5 158,-176.5 158,-176.5 158,-164.5 158,-164.5 158,-158.5 164,-152.5 170,-152.5 170,-152.5 200,-152.5 200,-152.5 206,-152.5 212,-158.5 212,-164.5 212,-164.5 212,-176.5 212,-176.5 212,-182.5 206,-188.5 200,-188.5"/>
+<text xml:space="preserve" text-anchor="middle" x="185" y="-166.22" font-family="DejaVu Sans" font-size="12.00">{2,3}</text>
+</g>
+<!-- s2&#45;&gt;s23 -->
+<g id="edge7" class="edge">
+<title>s2&#45;&gt;s23</title>
+<path fill="none" stroke="#6b7280" stroke-width="1.1" d="M124.72,-113.04C137.32,-124.83 153.85,-140.32 166.41,-152.09"/>
+</g>
+<!-- s3&#45;&gt;s13 -->
+<g id="edge8" class="edge">
+<title>s3&#45;&gt;s13</title>
+<path fill="none" stroke="#6b7280" stroke-width="1.1" d="M166.28,-113.04C153.68,-124.83 137.15,-140.32 124.59,-152.09"/>
+</g>
+<!-- s3&#45;&gt;s23 -->
+<g id="edge9" class="edge">
+<title>s3&#45;&gt;s23</title>
+<path fill="none" stroke="#6b7280" stroke-width="1.1" d="M185,-113.04C185,-124.83 185,-140.32 185,-152.09"/>
+</g>
+<!-- full -->
+<g id="node8" class="node">
+<title>full</title>
+<path fill="#93c5fd" stroke="#374151" stroke-width="1.1" d="M124.5,-265C124.5,-265 87.5,-265 87.5,-265 81.5,-265 75.5,-259 75.5,-253 75.5,-253 75.5,-240.5 75.5,-240.5 75.5,-234.5 81.5,-228.5 87.5,-228.5 87.5,-228.5 124.5,-228.5 124.5,-228.5 130.5,-228.5 136.5,-234.5 136.5,-240.5 136.5,-240.5 136.5,-253 136.5,-253 136.5,-259 130.5,-265 124.5,-265"/>
+<text xml:space="preserve" text-anchor="middle" x="106" y="-249.6" font-family="DejaVu Sans" font-size="12.00">{1,2,3}</text>
+<text xml:space="preserve" text-anchor="middle" x="106" y="-235.35" font-family="DejaVu Sans" font-size="12.00">⊤ (top)</text>
+</g>
+<!-- s12&#45;&gt;full -->
+<g id="edge10" class="edge">
+<title>s12&#45;&gt;full</title>
+<path fill="none" stroke="#6b7280" stroke-width="1.1" d="M45.32,-188.72C57.9,-200.54 74.55,-216.19 87.23,-228.11"/>
+</g>
+<!-- s13&#45;&gt;full -->
+<g id="edge11" class="edge">
+<title>s13&#45;&gt;full</title>
+<path fill="none" stroke="#6b7280" stroke-width="1.1" d="M106,-188.72C106,-200.54 106,-216.19 106,-228.11"/>
+</g>
+<!-- s23&#45;&gt;full -->
+<g id="edge12" class="edge">
+<title>s23&#45;&gt;full</title>
+<path fill="none" stroke="#6b7280" stroke-width="1.1" d="M166.68,-188.72C154.1,-200.54 137.45,-216.19 124.77,-228.11"/>
+</g>
+</g>
+</svg>

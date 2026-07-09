@@ -1,0 +1,23 @@
+// Control flow of Option<T>::join — the four-way match that adjoins None as bottom.
+//   join: None ⊔ x = x (identity);  Some(a) ⊔ Some(b) = Some(a ⊔ b) (recurse into T).
+// Render:  dot -Tsvg option-join-flow.dot -o option-join-flow.svg   Tool: Graphviz (flowchart).
+digraph option_join {
+    bgcolor = "white";
+    rankdir = TB;
+    nodesep = 0.5;
+    node [fontname="DejaVu Sans", fontsize=11, color="#374151", penwidth=1.1];
+    edge [fontname="DejaVu Sans", fontsize=10, color="#6B7280", fontcolor="#374151"];
+
+    start [label="self.join(other)", shape=box, style="rounded,filled", fillcolor="#EDE9FE"];
+    d     [label="match (self, other)", shape=diamond, style="filled", fillcolor="#FEF3C7"];
+    rec   [label="Some(a.join(b))\nrecurse: lift ⊔ into T", shape=box, style="rounded,filled", fillcolor="#86EFAC", color="#16A34A"];
+    la    [label="Some(a.clone())\nNone is identity for ⊔", shape=box, style="rounded,filled", fillcolor="#DBEAFE"];
+    lb    [label="Some(b.clone())\nNone is identity for ⊔", shape=box, style="rounded,filled", fillcolor="#DBEAFE"];
+    nn    [label="None   (⊥)", shape=box, style="rounded,filled", fillcolor="#E5E7EB"];
+
+    start -> d;
+    d -> rec [label="(Some a, Some b)"];
+    d -> la  [label="(Some a, None)"];
+    d -> lb  [label="(None, Some b)"];
+    d -> nn  [label="(None, None)"];
+}

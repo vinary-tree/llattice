@@ -1,0 +1,24 @@
+# The semiring ↔ lattice bridge. In an idempotent semiring (a ⊕ a = a), addition ⊕ IS a join and
+# induces the natural order a ⊑ b ⟺ a ⊕ b = b. But multiplication ⊗ is path composition, NOT meet —
+# conflating ⊗ with ⊓ is a category error. The bridge lives in lling-llang, not in llattice.
+# Render:  d2 semiring-bridge.d2 semiring-bridge.svg     Tool: D2 (uml_architecture, concept map).
+direction: right
+
+sr: "Idempotent semiring (dioid)\n(S, ⊕, ⊗, 0̄, 1̄),  a ⊕ a = a" {
+  style: { fill: "#DBEAFE"; stroke: "#1E3A8A" }
+}
+join: "join  ⊔" { style: { fill: "#86EFAC"; stroke: "#16A34A"; bold: true } }
+meet: "meet  ⊓" { style: { fill: "#FCD34D"; stroke: "#B45309"; bold: true } }
+
+sr -> join: "⊕  ↦  ⊔   (natural order  a ⊑ b ⟺ a ⊕ b = b)" {
+  style: { stroke: "#16A34A"; stroke-width: 2 }
+}
+sr -> meet: "⊗  ↛  ⊓   ✗  (⊗ = path composition, NOT meet)" {
+  style: { stroke: "#B91C1C"; stroke-dash: 4; stroke-width: 2 }
+}
+
+bridge: "lling-llang owns IdempotentSemiring\nand provides the Lattice impl (exposes ⊕ as join).\nllattice stays a pure, semiring-free leaf." {
+  style: { fill: "#C4B5FD"; stroke: "#5B21B6" }
+}
+sr -> bridge: "defined in" { style.stroke: "#5B21B6" }
+join -> bridge { style.stroke: "#5B21B6" }
