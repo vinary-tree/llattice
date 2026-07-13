@@ -1,1 +1,26 @@
+# ── Rust build output ──────────────────────────────────────────────────────────
 /target
+
+# ── LaTeX / TikZ intermediates ─────────────────────────────────────────────────
+# docs/diagrams/Makefile renders *.tex through the DVI route (latex → dvisvgm) and
+# deletes these on success; they only survive a failed or interrupted build.
+#
+# NOTE: the rendered .svg figures ARE committed on purpose — the diagrams-as-code
+# convention (docs/diagrams/README.md §5) commits both the text source and the
+# rendered image — so never ignore figure outputs here.
+*.aux
+*.dvi
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+
+# ── Editor / OS scratch files ──────────────────────────────────────────────────
+*~
+*.swp
+*.swo
+.DS_Store
+\#*\#
+.\#*

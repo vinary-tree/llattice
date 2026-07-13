@@ -3,7 +3,8 @@
 The complete documentation for **`llattice`** — a dependency-free `Lattice` trait (`join` / `meet`) for Rust.
 Start at the [crate README](../README.md) for the elevator pitch; this tree is the in-depth treatment.
 
-Every document uses Unicode mathematics in backticks, defines each symbol before use (collected in the
+Every document renders mathematics in GitHub-native MathJax (inline math spans and ` ```math ` blocks) while
+keeping Rust identifiers in `code` spans, defines each symbol before use (collected in the
 [**Glossary**](GLOSSARY.md)), cites primary sources with resolvable DOIs, and illustrates concepts with
 fully-coloured diagrams authored from the pgmcp diagramming catalog (see [diagrams/](diagrams/README.md)).
 
@@ -31,13 +32,13 @@ The mathematical foundations, building from order to lattices to the semiring br
 3. [**03 — Lawfulness and proofs**](theory/03-lawfulness-and-proofs.md) — the lawfulness matrix: which laws each
    impl satisfies, with proofs and the `f64`/`Vec` counterexamples.
 4. [**04 — The semiring bridge**](theory/04-semiring-bridge.md) — idempotent semirings as join-semilattices, why
-   `⊗ ≠ meet`, and why the bridge lives in `lling-llang`.
+   $`\otimes`$ is not `meet`, and why the bridge lives in `lling-llang`.
 
 ## Design
 
 Why the crate is shaped the way it is.
 
-- [**01 — Architecture**](design/01-architecture.md) — the trait, the bounds, blanket vs. concrete impls, the
+- [**01 — Architecture**](design/01-architecture.md) — the trait, the bounds, generic vs. concrete impls, the
   leaf-crate position.
 - [**02 — The orphan rule**](design/02-orphan-rule.md) — coherence, the diamond it avoids, the crate's reason to
   exist.
@@ -82,7 +83,7 @@ docs/
 ├── README.md                  ← you are here (index)
 ├── GLOSSARY.md                ← every symbol & term, defined once
 ├── theory/                    ← 01 order · 02 lattices · 03 lawfulness · 04 semiring bridge
-│   └── figures/               ← Graphviz/D2/TikZ sources + rendered SVG
+│   └── figures/               ← Graphviz/D2/PlantUML/TikZ sources + rendered SVG
 ├── design/                    ← 01 architecture · 02 orphan rule · 03 semantics · adr/
 │   └── figures/
 ├── guides/                    ← 01 quickstart · 02 implementing · 03 CRDTs · 04 fixpoints
@@ -92,5 +93,5 @@ docs/
 └── diagrams/                  ← shared powerset Hasse, render Makefile, palette, this catalog
 ```
 
-Every figure is rendered from a committed text source (`.dot`, `.d2`, `.mmd`, `.tex`, `.puml`) via
+Every figure is rendered from a committed text source (`.dot`, `.d2`, `.puml`, `.tex`) via
 `make -C docs/diagrams`; the [diagrams README](diagrams/README.md) documents which catalog tool renders each.

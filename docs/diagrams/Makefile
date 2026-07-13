@@ -1,30 +1,32 @@
 # docs/diagrams/Makefile — render every diagram source in the docs tree to a sibling .svg.
 #
 # Tooling is drawn from the pgmcp `diagramming` toolbox catalog:
-#   *.dot  → Graphviz  (graph_layout)     : dot -Tsvg
-#   *.d2   → D2        (uml_architecture)  : d2
-#   *.mmd  → Mermaid   (uml_architecture)  : mmdc  (headless Chromium)
-#   *.tex  → TikZ/PGF  (diagram_language)  : latex → dvisvgm  (DVI route; no Ghostscript needed)
+#   *.dot   → Graphviz  (graph_layout)     : dot -Tsvg          (Hasse / order diagrams, flowcharts)
+#   *.d2    → D2        (uml_architecture)  : d2 --layout elk    (taxonomy, dependency, concept maps)
+#   *.puml  → PlantUML  (uml_architecture)  : plantuml -tsvg     (class / sequence diagrams)
+#   *.tex   → TikZ/PGF  (diagram_language)  : latex → dvisvgm    (publication-grade math figures)
 #
-# `powerset-hasse.dot` is the canonical source for powerset-hasse.svg; `powerset-hasse.puml`
-# is kept as an equivalent PlantUML reference and is NOT auto-rendered (it would clobber the .svg).
+# All four engines emit portable, scalable, native-vector SVG that renders everywhere. PlantUML additionally
+# typesets <latex>…</latex> labels through its bundled JLaTeXMath into embedded vector paths, so mathematical
+# figure labels are true typeset math rather than unicode literals (see the pgmcp `diagrams-plantuml-latex`
+# guideline). PlantUML is preferred over Mermaid for every diagram type both support; Mermaid is no longer
+# used here (its retired sources live under docs/archive/ — see docs/archive/README.md).
+#
+# Sources under docs/archive/ are retired and are deliberately NOT rendered.
 #
 # Usage:  make            # render everything that is out of date
 #         make clean      # remove all generated .svg
 #         make list       # show discovered sources
 
-DOCS := $(abspath $(CURDIR)/..)
+DOCS  := $(abspath $(CURDIR)/..)
+PRUNE := -not -path '*/archive/*'
 
-DOT_SRC := $(shell find $(DOCS) -name '*.dot')
-D2_SRC  := $(shell find $(DOCS) -name '*.d2')
-MMD_SRC := $(shell find $(DOCS) -name '*.mmd')
-TEX_SRC := $(shell find $(DOCS) -name '*.tex')
+DOT_SRC  := $(shell find $(DOCS) -name '*.dot'  $(PRUNE))
+D2_SRC   := $(shell find $(DOCS) -name '*.d2'   $(PRUNE))
+PUML_SRC := $(shell find $(DOCS) -name '*.puml' $(PRUNE))
+TEX_SRC  := $(shell find $(DOCS) -name '*.tex'  $(PRUNE))
 
-# Graphviz / D2 / TikZ emit portable native-text SVG (scalable, render everywhere).
-# Mermaid is rendered to high-resolution PNG via mmdc (headless Chromium): its SVG output
-# uses <foreignObject> HTML labels that GitHub/librsvg cannot rasterize, whereas Chromium
-# renders them with full fidelity (spaces, wrapping, colour). PNG is portable to every viewer.
-ALL_OUT := $(DOT_SRC:.dot=.svg) $(D2_SRC:.d2=.svg) $(MMD_SRC:.mmd=.png) $(TEX_SRC:.tex=.svg)
+ALL_OUT := $(DOT_SRC:.dot=.svg) $(D2_SRC:.d2=.svg) $(PUML_SRC:.puml=.svg) $(TEX_SRC:.tex=.svg)
 
 .PHONY: all clean list
 all: $(ALL_OUT)
@@ -36,8 +38,9 @@ all: $(ALL_OUT)
 %.svg: %.d2
 	d2 --layout elk $< $@
 
-%.png: %.mmd
-	mmdc --quiet -c $(CURDIR)/mermaid.json -i $< -o $@ -s 2 -b white
+# PlantUML writes <name>.svg next to the source (the @startuml name matches each file's basename).
+%.svg: %.puml
+	plantuml -tsvg $<
 
 # TikZ via the DVI route: latex emits .dvi, dvisvgm converts it directly (no Ghostscript dependency).
 %.svg: %.tex
@@ -49,4 +52,4 @@ clean:
 	rm -f $(ALL_OUT)
 
 list:
-	@echo "DOT: $(DOT_SRC)"; echo "D2:  $(D2_SRC)"; echo "MMD: $(MMD_SRC)"; echo "TEX: $(TEX_SRC)"
+	@echo "DOT:  $(DOT_SRC)"; echo "D2:   $(D2_SRC)"; echo "PUML: $(PUML_SRC)"; echo "TEX:  $(TEX_SRC)"

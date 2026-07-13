@@ -1,0 +1,41 @@
+@startuml crdt-convergence
+' State-based CvRDT convergence: three replicas of a grow-only set (G-Set) exchange states by gossip and
+' merge with join (= ∪). Because ⊔ is idempotent, commutative, and associative, every replica that has
+' seen the same updates converges to the IDENTICAL state — regardless of order, duplication, or batching.
+' Render:  plantuml -tsvg crdt-convergence.puml     Tool: PlantUML (uml_architecture, sequence diagram).
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam sequenceArrowThickness 1.1
+skinparam sequenceMessageAlign center
+skinparam participant {
+  BackgroundColor #DBEAFE
+  BorderColor #1E3A8A
+}
+skinparam sequence {
+  LifeLineBorderColor #93C5FD
+  LifeLineBackgroundColor #EFF6FF
+}
+skinparam note {
+  BackgroundColor #EDE9FE
+  BorderColor #5B21B6
+}
+autonumber
+
+participant "Replica 1" as R1
+participant "Replica 2" as R2
+participant "Replica 3" as R3
+
+note over R1,R3: each replica holds a G-Set, merged by join = ∪
+R1 -> R1: local add → {alice}
+R2 -> R2: local add → {bob, carol}
+R3 -> R3: local add → {alice, bob}
+R2 -> R1: gossip {bob, carol}
+R1 -> R1 #86EFAC: join → {alice, bob, carol}
+R3 -> R1: gossip {alice, bob}\n(overlaps — idempotent)
+R1 -> R1: join → {alice, bob, carol}\n(no change)
+R1 -> R3: gossip {alice, bob, carol}
+R3 -> R3 #86EFAC: join → {alice, bob, carol}
+note over R1,R3: any order / duplication / batching → identical state ✓ (convergence)
+@enduml

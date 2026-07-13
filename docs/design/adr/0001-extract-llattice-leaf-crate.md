@@ -23,7 +23,7 @@ detail in [design/02](../02-orphan-rule.md)).
 
 ## Decision
 
-**Extract the `Lattice` trait and all its `std`-type blanket impls into a new, standalone crate `llattice` with
+**Extract the `Lattice` trait and all its `std`-type impls into a new, standalone crate `llattice` with
 zero dependencies, and have every family member depend on it.**
 
 Concretely:

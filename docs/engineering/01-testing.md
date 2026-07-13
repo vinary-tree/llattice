@@ -24,7 +24,7 @@ absorptive(a,b)      ≡  a.join(a.meet(b)) == a  ∧  a.meet(a.join(b)) == a
 ## 2. A dependency-free exhaustive checker
 
 For a small finite type you can check *every* triple — a complete proof by exhaustion, with no test
-dependencies. Here for `bool` (all `2³ = 8` triples):
+dependencies. Here for `bool` (all $`2^3 = 8`$ triples):
 
 ```rust
 use llattice::Lattice;
@@ -58,7 +58,8 @@ The same `laws_hold` works for any `Lattice + PartialEq`; sweep a small integer 
 
 ## 3. Property-based testing with `proptest`
 
-For large or infinite domains, sample instead of enumerate. Add the dev-dependency and assert the laws on random
+For large or infinite domains, sample instead of enumerate — the property-based testing style introduced by
+QuickCheck (Claessen & Hughes 2000). Add the dev-dependency and assert the laws on random
 triples. (Shown as a recommended pattern; it requires `proptest` in `[dev-dependencies]`, so it is not part of
 the crate's own doctest run.)
 
@@ -127,14 +128,18 @@ proptest! {
 }
 ```
 
-This is the executable form of the documentation's central correction: test `Vec` under `≈`, not `==`.
+This is the executable form of the documentation's central correction: test `Vec` under $`\approx`$, not `==`.
 
 ---
 
 ## 5. Literate sketch of a generic law-audit
 
 For a reusable harness, structure the audit as: *for each impl, draw a representative sample, run every law,
-report the first violating witness*. In literate form:
+report the first violating witness*.
+
+![Law-audit pipeline: generate a triple (a, b, c), check the four lattice laws — each in its join form and its meet dual — then either accept the impl as lawful or shrink and report the first counterexample witness](figures/law-audit-flow.svg)
+
+In literate form:
 
 ```text
 audit(impl, sample):
@@ -164,6 +169,16 @@ behaviour of every impl with concrete `assert_eq!`s, including the idempotency a
 - the **doctests** — every ` ```rust ` block in the README and in these guides is compiled and executed (wired
   via `#[doc = include_str!(...)]` in `src/lib.rs`), so every runnable example in this documentation is verified
   on each test run.
+
+---
+
+## References
+
+1. Claessen, K., & Hughes, J. (2000). QuickCheck: a lightweight tool for random testing of Haskell programs.
+   In *ICFP '00* (International Conference on Functional Programming), 268–279.
+   <https://doi.org/10.1145/351240.351266> — the origin of property-based testing.
+
+---
 
 → Continue to **[02 — Performance](02-performance.md)** for the complexity of each operation, or
 **[03 — Security](03-security.md)** for the threat model.

@@ -33,7 +33,7 @@ assert_eq!(5u32.join(&3), 5);
 assert_eq!(5u32.meet(&3), 3);
 ```
 
-`join` (⊔) climbs *up* the order (for numbers, `max`); `meet` (⊓) descends (for numbers, `min`). The full
+`join` ($`\sqcup`$) climbs *up* the order (for numbers, `max`); `meet` ($`\sqcap`$) descends (for numbers, `min`). The full
 mental model is in [theory/01](../theory/01-order-theory.md); you do not need it to start.
 
 ---

@@ -14,8 +14,8 @@
 
 A **lattice** is a partially-ordered set in which *every pair* of elements has both a least upper bound and a greatest lower bound. llattice distills that idea to its smallest useful form: a single trait with two methods.
 
-- **`join`** — the *least upper bound* (supremum, `⊔`): the smallest element that is `≥` both inputs. For numbers, `max`; for sets, `∪` (union).
-- **`meet`** — the *greatest lower bound* (infimum, `⊓`): the largest element that is `≤` both inputs. For numbers, `min`; for sets, `∩` (intersection).
+- **`join`** — the *least upper bound* (supremum, $`\sqcup`$): the smallest element that is $`\geq`$ both inputs. For numbers, $`\max`$; for sets, $`\cup`$ (union).
+- **`meet`** — the *greatest lower bound* (infimum, $`\sqcap`$): the largest element that is $`\leq`$ both inputs. For numbers, $`\min`$; for sets, $`\cap`$ (intersection).
 
 ```rust
 use llattice::Lattice;
@@ -26,7 +26,7 @@ assert_eq!(5u32.meet(&3), 3); // greatest lower bound = min
 
 llattice is a **leaf crate**: it has **zero dependencies** and imports nothing beyond `std`. It was extracted from [`libdictenstein`](https://github.com/vinary-tree/libdictenstein) to break a dependency cycle, and now serves as the shared lattice vocabulary for the **libdictenstein / liblevenshtein / lling-llang / duallity / libgrammstein** family. Because the trait lives in one small crate everyone depends on, a `HashSet<T>` produced in one crate and merged in another agree on what `join` *means* — no orphan-rule gymnastics, no re-derivation, no diamond conflicts.
 
-> **Terminology.** `⊑` is the **partial order** ("approximates" / "is below"). `⊔` is **join**; `⊓` is **meet**. A **join-semilattice** has only `⊔` (every pair has a supremum); a **meet-semilattice** has only `⊓`; a **lattice** has both. The greatest element (if any) is **⊤** ("top"), the least is **⊥** ("bottom").
+> **Terminology.** $`\sqsubseteq`$ is the **partial order** ("approximates" / "is below"). $`\sqcup`$ is **join**; $`\sqcap`$ is **meet**. A **join-semilattice** has only $`\sqcup`$ (every pair has a supremum); a **meet-semilattice** has only $`\sqcap`$; a **lattice** has both. The greatest element (if any) is $`\top`$ ("top"), the least is $`\bot`$ ("bottom").
 
 ---
 
@@ -36,33 +36,32 @@ llattice is a **leaf crate**: it has **zero dependencies** and imports nothing b
 
 | Law | Join form | Meet form |
 |--------------------|-----------------------------------|-----------------------------------|
-| **Idempotency**    | `a ⊔ a = a`                       | `a ⊓ a = a`                       |
-| **Commutativity**  | `a ⊔ b = b ⊔ a`                   | `a ⊓ b = b ⊓ a`                   |
-| **Associativity**  | `(a ⊔ b) ⊔ c = a ⊔ (b ⊔ c)`       | `(a ⊓ b) ⊓ c = a ⊓ (b ⊓ c)`       |
-| **Absorption**     | `a ⊔ (a ⊓ b) = a`                 | `a ⊓ (a ⊔ b) = a`                 |
+| **Idempotency**    | $`a \sqcup a = a`$                | $`a \sqcap a = a`$                |
+| **Commutativity**  | $`a \sqcup b = b \sqcup a`$       | $`a \sqcap b = b \sqcap a`$       |
+| **Associativity**  | $`(a \sqcup b) \sqcup c = a \sqcup (b \sqcup c)`$ | $`(a \sqcap b) \sqcap c = a \sqcap (b \sqcap c)`$ |
+| **Absorption**     | $`a \sqcup (a \sqcap b) = a`$     | $`a \sqcap (a \sqcup b) = a`$     |
 
 These laws are not decoration — they are exactly what makes lattice merge **safe under reordering and duplication**:
 
-- **Idempotency** ⟹ applying the same update twice is a no-op (`a ⊔ a = a`). At-least-once delivery is safe.
-- **Commutativity** ⟹ the order two updates arrive in does not matter (`a ⊔ b = b ⊔ a`).
-- **Associativity** ⟹ how you parenthesize a batch of merges does not matter.
+- **Idempotency** $`\implies`$ applying the same update twice is a no-op ($`a \sqcup a = a`$). At-least-once delivery is safe.
+- **Commutativity** $`\implies`$ the order two updates arrive in does not matter ($`a \sqcup b = b \sqcup a`$).
+- **Associativity** $`\implies`$ how you parenthesize a batch of merges does not matter.
 
 Together these three give the property CRDTs rely on: *any* fold of *any* multiset of states, in *any* order, with *any* grouping, yields the same result.
 
 The order and the operations are two views of one structure. Define the partial order **from** join:
 
-```text
-a ⊑ b   ⟺   a ⊔ b = b           (b is an upper bound of a, so a is "below" b)
-a ⊑ b   ⟺   a ⊓ b = a           (the dual reading, via meet)
+```math
+a \sqsubseteq b \quad\iff\quad a \sqcup b = b \quad\iff\quad a \sqcap b = a
 ```
 
-So for `u32`, `a ⊑ b` is just `a ≤ b`; for `HashSet`, `a ⊑ b` is `a ⊆ b`. `join` climbs the order toward `⊤`; `meet` descends toward `⊥`.
+The middle form says `b` is an upper bound of `a` (so `a` sits "below" `b`); the right form is the dual reading, via `meet`. So for `u32`, $`a \sqsubseteq b`$ is just $`a \leq b`$; for `HashSet`, $`a \sqsubseteq b`$ is $`a \subseteq b`$. `join` climbs the order toward $`\top`$; `meet` descends toward $`\bot`$.
 
 ---
 
 ## A worked example: the powerset lattice of {1, 2, 3}
 
-The subsets of `{1, 2, 3}`, ordered by `⊆`, form a lattice where `join = ∪` and `meet = ∩`. Its **Hasse diagram** (edges = "covered by", drawn upward) is the canonical picture of a lattice — and it is *exactly* what `HashSet<i32>` computes:
+The subsets of $`\{1, 2, 3\}`$, ordered by $`\subseteq`$, form a lattice where `join` is $`\cup`$ and `meet` is $`\cap`$. Its **Hasse diagram** (edges = "covered by", drawn upward) is the canonical picture of a lattice — and it is *exactly* what `HashSet<i32>` computes:
 
 <img src="docs/diagrams/powerset-hasse.svg" alt="Hasse diagram of the powerset lattice of {1,2,3}" width="420"/>
 
@@ -79,31 +78,31 @@ assert_eq!(s12.join(&s23), [1, 2, 3].into_iter().collect()); // ⊔ = ∪ = {1,2
 assert_eq!(s12.meet(&s23), [2].into_iter().collect());       // ⊓ = ∩ = {2}
 ```
 
-`⊥` is `{}` (the empty set), `⊤` is `{1, 2, 3}`. Every pair has a unique supremum and infimum — the defining property of a lattice.
+$`\bot`$ is $`\varnothing`$ (the empty set), $`\top`$ is $`\{1, 2, 3\}`$. Every pair has a unique supremum and infimum — the defining property of a lattice.
 
 ---
 
 ## Built-in implementations
 
-Implementing `Lattice` requires `Clone + Send + Sync`. The crate ships these blanket and concrete impls:
+Implementing `Lattice` requires `Clone + Send + Sync`. The crate ships these generic and concrete impls:
 
-<img src="docs/design/figures/lattice-class.png" alt="The Lattice trait and its built-in implementors; f64 and Vec carry lawfulness caveats" width="760"/>
+<img src="docs/design/figures/lattice-class.svg" alt="The Lattice trait and its built-in implementors; f64 and Vec carry lawfulness caveats" width="760"/>
 
-| Type | `join` (⊔, supremum) | `meet` (⊓, infimum) | Order `⊑` | Bounds |
+| Type | `join` ($`\sqcup`$, supremum) | `meet` ($`\sqcap`$, infimum) | Order $`\sqsubseteq`$ | Bounds |
 |------------------------------------------|----------------------------------|----------------------------------|------------|------------------|
-| `u8 … u128`, `usize`, `i8 … i128`, `isize` | `max`                          | `min`                            | `≤`        | `MIN` / `MAX`    |
-| `f32`, `f64`                             | `f::max`                         | `f::min`                         | `≤`        | `±∞`             |
-| `bool`                                   | `‖` (logical OR)                 | `&&` (logical AND)               | `false ≤ true` | `false` / `true` |
-| `Option<T: Lattice>`                     | `Some` if **either** is `Some`   | `Some` only if **both** are `Some` | `None ⊑ Some(_)` | `None` = ⊥ |
-| `HashSet<T: Eq + Hash>`                  | `∪` (union)                      | `∩` (intersection)               | `⊆`        | `{}` = ⊥         |
-| `Vec<T: Eq>`                             | concat + dedup (order-preserving) | intersection (order-preserving)  | (see note) | `[]` = ⊥         |
+| `u8 … u128`, `usize`, `i8 … i128`, `isize` | `max`                          | `min`                            | $`\leq`$   | `MIN` / `MAX`    |
+| `f32`, `f64`                             | `f::max`                         | `f::min`                         | $`\leq`$   | $`\pm\infty`$    |
+| `bool`                                   | $`\lor`$ (logical OR)            | $`\land`$ (logical AND)          | $`\text{false} \leq \text{true}`$ | `false` / `true` |
+| `Option<T: Lattice>`                     | `Some` if **either** is `Some`   | `Some` only if **both** are `Some` | `None` $`\sqsubseteq`$ `Some(_)` | `None` = $`\bot`$ |
+| `HashSet<T: Eq + Hash>`                  | $`\cup`$ (union)                 | $`\cap`$ (intersection)          | $`\subseteq`$ | `{}` = $`\bot`$  |
+| `Vec<T: Eq>`                             | concat + dedup (order-preserving) | intersection (order-preserving)  | (see note) | `[]` = $`\bot`$  |
 
-> **`f32`/`f64` caveat.** The float impls are a lattice (in fact a chain) only on the `NaN`-free extended reals `[−∞, +∞]` (`⊥ = −∞`, `⊤ = +∞`). `f64::max(NaN, x) = x` silently drops a `NaN`, and `NaN != NaN` breaks idempotency under `==`. Validate away `NaN` before merging — see [theory/03 §6](docs/theory/03-lawfulness-and-proofs.md) and [the security threat model](docs/engineering/03-security.md).
+> **`f32`/`f64` caveat.** The float impls are a lattice (in fact a chain) only on the `NaN`-free extended reals $`[-\infty, +\infty]`$ ($`\bot = -\infty`$, $`\top = +\infty`$). `f64::max(NaN, x)` returns `x`, silently dropping a `NaN`, and `NaN != NaN` breaks idempotency under `==`. Validate away `NaN` before merging — see [theory/03 §6](docs/theory/03-lawfulness-and-proofs.md) and [the security threat model](docs/engineering/03-security.md).
 
 Notes on the structural impls:
 
-- **`Option<T>` is the "lifted" lattice.** `join` keeps a value if either side has one (`None` acts as bottom — `None ⊔ x = x`); `meet` requires *both* sides to be present (`None ⊓ x = None`). When both are `Some`, it recurses: `Some(a) ⊔ Some(b) = Some(a ⊔ b)`. This is the standard way to adjoin a fresh `⊥` to any lattice `T`.
-- **`Vec<T>` is the deduplicating, order-preserving view.** `join` appends elements of the right operand not already present (`[3,1,2] ⊔ [4,2,1] = [3,1,2,4]`); `meet` keeps the left operand's elements that also appear in the right, in the left's order (`[3,1,2] ⊓ [4,2,1] = [1,2]`). Treat it as a set-with-insertion-order, not a free monoid: idempotency and commutativity hold up to set-equality of contents, but the *ordering* of `join` is left-biased. Strictly, `Vec<T>` is a **join-semilattice on the content quotient**, *not* a full lattice on `Vec` values — `[1,2] ⊔ [2,1] = [1,2]` while `[2,1] ⊔ [1,2] = [2,1]`, and absorption fails on raw `Vec`. Reach for `HashSet` when you need a symmetric set lattice; details in [theory/03 §7](docs/theory/03-lawfulness-and-proofs.md).
+- **`Option<T>` is the "lifted" lattice.** `join` keeps a value if either side has one (`None` acts as bottom — $`\texttt{None} \sqcup x = x`$); `meet` requires *both* sides to be present ($`\texttt{None} \sqcap x = \texttt{None}`$). When both are `Some`, it recurses: $`\texttt{Some}(a) \sqcup \texttt{Some}(b) = \texttt{Some}(a \sqcup b)`$. This is the standard way to adjoin a fresh $`\bot`$ to any lattice `T`.
+- **`Vec<T>` is the deduplicating, order-preserving view.** `join` appends elements of the right operand not already present ($`[3,1,2] \sqcup [4,2,1] = [3,1,2,4]`$); `meet` keeps the left operand's elements that also appear in the right, in the left's order ($`[3,1,2] \sqcap [4,2,1] = [1,2]`$). Treat it as a set-with-insertion-order, not a free monoid: idempotency and commutativity hold up to set-equality of contents, but the *ordering* of `join` is left-biased. Strictly, `Vec<T>` is a **join-semilattice on the content quotient**, *not* a full lattice on `Vec` values — $`[1,2] \sqcup [2,1] = [1,2]`$ while $`[2,1] \sqcup [1,2] = [2,1]`$, and absorption fails on raw `Vec`. Reach for `HashSet` when you need a symmetric set lattice; details in [theory/03 §7](docs/theory/03-lawfulness-and-proofs.md).
 
 ```rust
 use llattice::Lattice;
@@ -168,9 +167,9 @@ assert_eq!(Version(7).join(&Version(4)), Version(7));
 
 ### CRDT-style merges & state-based replication
 
-A **join-semilattice** is the algebraic backbone of a **state-based CvRDT** (Convergent Replicated Data Type). In Shapiro et al.'s formulation, each replica holds a value drawn from a join-semilattice, and the merge of two replica states is their **join**. Because `⊔` is idempotent, commutative, and associative, replicas that have seen the same set of updates — *regardless of order, duplication, or batching* — converge to the **identical** state. No coordination, no conflict resolution, no consensus round-trip:
+A **join-semilattice** is the algebraic backbone of a **state-based CvRDT** (Convergent Replicated Data Type). In Shapiro et al.'s formulation, each replica holds a value drawn from a join-semilattice, and the merge of two replica states is their **join**. Because $`\sqcup`$ is idempotent, commutative, and associative, replicas that have seen the same set of updates — *regardless of order, duplication, or batching* — converge to the **identical** state. No coordination, no conflict resolution, no consensus round-trip:
 
-<img src="docs/guides/figures/crdt-convergence.png" alt="Three replicas merging a grow-only set in different orders converge to the same state" width="640"/>
+<img src="docs/guides/figures/crdt-convergence.svg" alt="Three replicas merging a grow-only set in different orders converge to the same state" width="640"/>
 
 ```rust
 use llattice::Lattice;
@@ -187,34 +186,34 @@ assert_eq!(merged, ["alice", "bob", "carol"].into_iter().collect());
 assert_eq!(merged, r3.join(&r1).join(&r2)); // order-independent
 ```
 
-The same shape powers a **last-writer-wins register** (join over `(timestamp, value)` pairs), a **version vector** (join = element-wise `max`, i.e. `Vec`/map of counters), or a **monotone clock** (join = `max`). Each is just a different `Lattice` instance over the same two-method contract.
+The same shape powers a **last-writer-wins register** (join over `(timestamp, value)` pairs), a **version vector** (join is element-wise $`\max`$, i.e. a `Vec`/map of counters), or a **monotone clock** (join is $`\max`$). Each is just a different `Lattice` instance over the same two-method contract.
 
 ### Monotone state & fixpoints
 
-Lattices also model *monotone* computation: dataflow analyses, abstract interpretation, and Datalog-style fixpoint iteration all advance a value monotonically up a lattice (`x ⊑ f(x)`) until it stops changing. llattice gives those engines a uniform `join` to accumulate facts and a uniform `meet` to intersect constraints.
+Lattices also model *monotone* computation: dataflow analyses, abstract interpretation, and Datalog-style fixpoint iteration all advance a value monotonically up a lattice ($`x \sqsubseteq f(x)`$) until it stops changing. llattice gives those engines a uniform `join` to accumulate facts and a uniform `meet` to intersect constraints.
 
 ---
 
 ## Relationship to semirings
 
-There is a precise bridge between lattices and **idempotent semirings**. In a semiring `(S, ⊕, ⊗, 0̄, 1̄)` whose addition is idempotent (`a ⊕ a = a`), the `⊕` operation is automatically a **join**: it is commutative, associative, idempotent, and induces the *natural order* `a ⊑ b ⟺ a ⊕ b = b`. So **every idempotent semiring carries a join-semilattice for free**.
+There is a precise bridge between lattices and **idempotent semirings**. In a semiring $`(S, \oplus, \otimes, \bar{0}, \bar{1})`$ whose addition is idempotent ($`a \oplus a = a`$), the $`\oplus`$ operation is automatically a **join**: it is commutative, associative, idempotent, and induces the *natural order* $`a \sqsubseteq b \iff a \oplus b = b`$. So **every idempotent semiring carries a join-semilattice for free**.
 
-The converse does *not* hold blindly: a semiring's `⊗` (multiplication) is generally **path composition**, not lattice meet — in a weighted-automaton (WFST) setting, `⊗` concatenates edge weights along a path while `⊕` selects the best among alternative paths. Conflating `⊗` with `⊓` would be a category error.
+The converse does *not* hold blindly: a semiring's $`\otimes`$ (multiplication) is generally **path composition**, not lattice meet — in a weighted-automaton (WFST) setting, $`\otimes`$ concatenates edge weights along a path while $`\oplus`$ selects the best among alternative paths. Conflating $`\otimes`$ with $`\sqcap`$ would be a category error.
 
-For that reason the **semiring ↔ lattice bridge lives in [`lling-llang`](https://github.com/vinary-tree/lling-llang)**, not here. `lling-llang` owns the `IdempotentSemiring` types and provides the `Lattice` impl that exposes their `⊕` as `join`. llattice deliberately stays a pure, dependency-free leaf so that crates needing *only* the lattice vocabulary never pull in semiring machinery.
+For that reason the **semiring ↔ lattice bridge lives in [`lling-llang`](https://github.com/vinary-tree/lling-llang)**, not here. `lling-llang` owns the `IdempotentSemiring` types and provides the `Lattice` impl that exposes their $`\oplus`$ as `join`. llattice deliberately stays a pure, dependency-free leaf so that crates needing *only* the lattice vocabulary never pull in semiring machinery.
 
 ---
 
 ## Why a shared crate (not a local trait)?
 
-Rust's orphan rule means a trait can only be implemented for a foreign type by the crate that *defines the trait* or the crate that *defines the type*. If each member of the family declared its own `Lattice`, then `libdictenstein`'s `HashSet` lattice and `lling-llang`'s `HashSet` lattice would be **different, incompatible traits** — a value could not flow between them, and any crate depending on both would face a diamond. Extracting `Lattice` into a single zero-dependency leaf crate gives the whole family one canonical trait, one set of blanket impls, and one source of truth for what `join`/`meet` mean.
+Rust's orphan rule means a trait can only be implemented for a foreign type by the crate that *defines the trait* or the crate that *defines the type*. If each member of the family declared its own `Lattice`, then `libdictenstein`'s `HashSet` lattice and `lling-llang`'s `HashSet` lattice would be **different, incompatible traits** — a value could not flow between them, and any crate depending on both would face a diamond. Extracting `Lattice` into a single zero-dependency leaf crate gives the whole family one canonical trait, one set of built-in impls, and one source of truth for what `join`/`meet` mean.
 
 ---
 
 ## Documentation
 
 In-depth documentation lives under [**`docs/`**](docs/README.md) — a guideline-driven suite with theory,
-design, guides, and engineering tracks, plus 17 fully-coloured diagrams rendered from committed sources.
+design, guides, and engineering tracks, plus 19 fully-coloured diagrams rendered from committed sources.
 
 - **Theory** — [order theory](docs/theory/01-order-theory.md) · [lattices & the four laws](docs/theory/02-semilattices-lattices.md) · [lawfulness matrix & proofs](docs/theory/03-lawfulness-and-proofs.md) · [the semiring bridge](docs/theory/04-semiring-bridge.md)
 - **Design** — [architecture](docs/design/01-architecture.md) · [the orphan rule](docs/design/02-orphan-rule.md) · [per-impl semantics](docs/design/03-semantics.md) · [ADRs](docs/design/adr/)
@@ -222,7 +221,7 @@ design, guides, and engineering tracks, plus 17 fully-coloured diagrams rendered
 - **Engineering** — [testing](docs/engineering/01-testing.md) · [performance](docs/engineering/02-performance.md) · [security](docs/engineering/03-security.md)
 - **Reference** — [glossary](docs/GLOSSARY.md) · [diagram catalog](docs/diagrams/README.md) · [changelog](CHANGELOG.md)
 
-Diagrams are rebuilt from their text sources with `make -C docs/diagrams` (Graphviz · D2 · Mermaid · TikZ).
+Diagrams are rebuilt from their text sources with `make -C docs/diagrams` (Graphviz · D2 · PlantUML · TikZ).
 
 ---
 

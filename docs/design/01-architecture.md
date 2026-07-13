@@ -5,7 +5,7 @@
 
 `llattice` is deliberately tiny: **one trait, two methods, a handful of impls, zero dependencies.** Its value
 is not in volume of code but in being the *single, shared* place the lattice vocabulary is defined for a whole
-family of crates. This document explains the public surface, the bound choices, the blanket-vs-concrete impl
+family of crates. This document explains the public surface, the bound choices, the generic-vs-concrete impl
 strategy, and the leaf-crate position in the dependency graph.
 
 ---
@@ -23,7 +23,7 @@ pub trait Lattice: Clone + Send + Sync {
 }
 ```
 
-![The Lattice trait and its built-in implementors](figures/lattice-class.png)
+![The Lattice trait and its built-in implementors](figures/lattice-class.svg)
 
 Every built-in impl realises this trait; the two red boxes (`f64`, `Vec`) carry the lawfulness caveats proven
 in [theory/03](../theory/03-lawfulness-and-proofs.md). The complete behavioural contract — order, bounds,
@@ -37,7 +37,7 @@ The bound `Lattice: Clone + Send + Sync` is a deliberate design choice, not inci
 
 - **`Clone`** — `join`/`meet` take `&self` and `&other` and return an owned `Self`. The structural impls
   (`Option`, `HashSet`, `Vec`) must *clone* elements they keep (e.g. `Some(a.clone())` when the other side is
-  `None`). Requiring `Clone` lets the blanket impls be written once, generically.
+  `None`). Requiring `Clone` lets the generic (parametric) impls be written once, generically.
 - **`Send + Sync`** — the primary motivating use is **merging state across threads and replicas** (CRDTs,
   parallel fixpoint engines). A lattice value that could not cross a thread boundary would be useless for that.
   Demanding `Send + Sync` up front means *every* `Lattice` value is safe to share and move between workers, and
@@ -52,7 +52,7 @@ That exclusion is intentional: such types are not the merge-across-workers value
 
 ---
 
-## 3. Blanket vs. concrete impls
+## 3. Generic vs. concrete impls
 
 `llattice` mixes two impl styles, chosen per type family:
 
@@ -82,10 +82,10 @@ That exclusion is intentional: such types are not the merge-across-workers value
   ```
 
   Note the asymmetry: `Option<T>` requires `T: Lattice` (it *recurses* into `T` —
-  `Some(a) ⊔ Some(b) = Some(a ⊔ b)`), whereas `HashSet<T>`/`Vec<T>` only need element equality, because their
+  $`\mathrm{Some}(a) \sqcup \mathrm{Some}(b) = \mathrm{Some}(a \sqcup b)`$), whereas `HashSet<T>`/`Vec<T>` only need element equality, because their
   lattice structure is the *subset/sequence* structure, independent of any order on `T`.
 
-These are genuine **blanket impls over the standard library's generic types**. The orphan rule permits them
+These are genuine **generic (constructor-parametric) impls over the standard library's container types**. The orphan rule permits them
 only because `llattice` defines the `Lattice` trait — which is the whole architectural point of the next
 section.
 
@@ -110,7 +110,7 @@ external; everything else depends *on it*:
 `llattice` was **extracted from `libdictenstein`** to break a dependency cycle: `libdictenstein` needed the
 lattice vocabulary, and so did `lling-llang`, but each defining its own trait made their `HashSet` lattices
 *incompatible* (the orphan-rule diamond of [design/02](02-orphan-rule.md)). Pulling `Lattice` down into a
-shared leaf gives the family one trait, one set of blanket impls, and one meaning of `join`/`meet`. A
+shared leaf gives the family one trait, one set of impls, and one meaning of `join`/`meet`. A
 `HashSet<T>` merged in `libdictenstein` and a `HashSet<T>` merged in `lling-llang` now agree by construction.
 
 The leaf position is enforced by having **zero dependencies** (`[dependencies]` in `Cargo.toml` is empty) and

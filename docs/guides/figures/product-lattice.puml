@@ -1,0 +1,30 @@
+@startuml product-lattice
+' Product lattice: a struct P { a: A, b: B } is ordered componentwise, giving the product A × B.
+' Shown concretely for two 2-element chains A = { a0 ⊑ a1 } and B = { b0 ⊑ b1 }: the product is a diamond.
+' This is the "lift, don't re-derive" recipe — combine field lattices instead of hand-writing a new order.
+' Render:  plantuml -tsvg product-lattice.puml     Tool: PlantUML (uml_architecture, Hasse + LaTeX labels).
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam ArrowColor #6B7280
+skinparam ArrowThickness 1.1
+
+rectangle "<latex>(a_0,\ b_0)=\bot</latex>"  as BB #E5E7EB
+rectangle "<latex>(a_1,\ b_0)</latex>"        as LB #DBEAFE
+rectangle "<latex>(a_0,\ b_1)</latex>"        as BR #DBEAFE
+rectangle "<latex>(a_1,\ b_1)=\top</latex>"   as TT #93C5FD
+
+BB -up- LB
+BB -up- BR
+LB -up- TT
+BR -up- TT
+
+legend right
+  Product of field lattices  A, B  =  struct P { a: A, b: B }
+  ....
+  <latex>(a_1,b_1)\sqcup(a_2,b_2)=(a_1\sqcup a_2,\ b_1\sqcup b_2)</latex>
+  <latex>(a_1,b_1)\sqcap(a_2,b_2)=(a_1\sqcap a_2,\ b_1\sqcap b_2)</latex>
+  <latex>(a_1,b_1)\sqsubseteq(a_2,b_2)\iff a_1\sqsubseteq a_2\ \land\ b_1\sqsubseteq b_2</latex>
+endlegend
+@enduml

@@ -35,7 +35,7 @@ assert_eq!(Version(7).meet(&Version(4)), Version(4));
 Before shipping an impl, confirm each item. The first three guarantee CRDT-style convergence; the fourth ties
 `join` and `meet` into one consistent order.
 
-- [ ] **`join` is the least upper bound** — `a.join(&b)` is `⊒` both `a` and `b`, and is `⊑` every common upper
+- [ ] **`join` is the least upper bound** — `a.join(&b)` is $`\sqsupseteq`$ both `a` and `b`, and is $`\sqsubseteq`$ every common upper
       bound.
 - [ ] **`meet` is the greatest lower bound** — the dual.
 - [ ] **Idempotency** — `a.join(&a) == a` and `a.meet(&a) == a`.
@@ -83,6 +83,10 @@ assert_eq!(
 A product of lattices is a lattice, and a product of *distributive* lattices is distributive — so this `Health`
 inherits lawfulness from `u32` automatically.
 
+Each field is ordered on its own axis, so the whole struct is ordered by the product of the field orders:
+
+![Product lattice: a two-field struct whose join and meet act componentwise, each field ordered independently](figures/product-lattice.svg)
+
 ### Optionality: reuse `Option<T>`
 
 To add a "no value yet" bottom, wrap in `Option<T>` rather than hand-rolling a sentinel — `Option`'s impl is the
@@ -108,7 +112,7 @@ assert_eq!(seen.join(&Some(Version(3))), Some(Version(3))); // first observation
 
 - **Picking a non-monotone `join`.** If `a.join(&b)` is not actually an upper bound of both, convergence breaks.
   Example bug: `fn join(&self, o) { Version(self.0 + o.0) }` — addition is *not* a least upper bound (it is not
-  idempotent: `a + a ≠ a`). Use `max`.
+  idempotent: $`a + a \neq a`$). Use `max`.
 - **Asymmetric ordering in containers.** If your `join` keeps left-bias like `Vec`, say so: the laws then hold
   only up to your content-equality, not structural `==` ([theory/03 §7](../theory/03-lawfulness-and-proofs.md)).
 - **Floating-point fields.** A struct with an `f64` field inherits the `NaN` defect

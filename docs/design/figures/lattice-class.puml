@@ -1,0 +1,75 @@
+@startuml lattice-class
+' Class / realization diagram: the `Lattice` trait and its built-in implementors.
+' Floats and Vec<T> carry lawfulness caveats (red) — see the lawfulness matrix (theory/03).
+' Render:  plantuml -tsvg lattice-class.puml     Tool: PlantUML (uml_architecture, class diagram).
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam ArrowColor #6B7280
+skinparam roundcorner 6
+skinparam interface {
+  BackgroundColor #C4B5FD
+  BorderColor #5B21B6
+  FontColor #1E1B4B
+}
+skinparam class {
+  BackgroundColor #DBEAFE
+  BorderColor #1E3A8A
+  FontColor #111827
+}
+skinparam note {
+  BackgroundColor #FEE2E2
+  BorderColor #B91C1C
+}
+
+interface "Lattice" as Lattice <<trait>> {
+  Clone + Send + Sync
+  --
+  + join(other: &Self) : Self
+  + meet(other: &Self) : Self
+}
+
+class "Integers" as Integers {
+  u8..u128, usize, i8..i128, isize
+  join = max,  meet = min
+}
+class "Floats" as Floats #FCA5A5;line:B91C1C {
+  f32, f64
+  join = max,  meet = min
+}
+class "Bool" as Bool {
+  bool
+  join = ∨ (OR),  meet = ∧ (AND)
+}
+class "OptionT" as OptionT {
+  Option of (T: Lattice)
+  None = ⊥ (fresh bottom)
+}
+class "HashSetT" as HashSetT {
+  HashSet of (T: Eq + Hash)
+  join = ∪,  meet = ∩
+}
+class "VecT" as VecT #FCA5A5;line:B91C1C {
+  Vec of (T: Eq)
+  join = concat+dedup,  meet = ∩
+}
+
+Integers ..|> Lattice : impl
+Floats   ..|> Lattice : impl
+Bool     ..|> Lattice : impl
+OptionT  ..|> Lattice : impl
+HashSetT ..|> Lattice : impl
+VecT     ..|> Lattice : impl
+
+note bottom of Floats
+  a lattice only on the NaN-free
+  extended reals <latex>[-\infty, +\infty]</latex>
+end note
+
+note bottom of VecT
+  join-semilattice up to content-equality;
+  absorption fails on raw <latex>\mathtt{Vec}</latex> values
+end note
+
+@enduml

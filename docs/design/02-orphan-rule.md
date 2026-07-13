@@ -82,7 +82,7 @@ refers to *the same* trait, so:
 - coherence is satisfied by construction — there is nothing to reconcile because there was only ever one impl.
 
 The orphan rule even *helps* now: because `llattice` owns `Lattice`, it is the one crate allowed to write the
-`std`-type blanket impls, and because the family member crates own *their* types, each may add `impl Lattice
+`std`-type impls, and because the family member crates own *their* types, each may add `impl Lattice
 for ItsOwnType` locally. The rule routes every impl to a unique, legal home.
 
 ---

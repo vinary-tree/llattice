@@ -26,7 +26,7 @@ The three attacks below all enter through that boundary.
 
 - `f64::max(NaN, x) = x`, so `NaN` is **silently dropped** by `join`/`meet` — data the operator expected to
   dominate simply vanishes.
-- `NaN` is **`≤`-incomparable**, so any invariant that assumes a total order (a sorted merge, a monotonicity
+- `NaN` is **$`\leq`$-incomparable**, so any invariant that assumes a total order (a sorted merge, a monotonicity
   check, "the clock only advances") **silently breaks** — `NaN.join(&NaN) != NaN` under `==`, so an idempotent
   re-merge appears to *change* state, which can desynchronise replicas that test for convergence by equality.
 
@@ -43,14 +43,15 @@ The three attacks below all enter through that boundary.
 
 ## 3. Attack B — algorithmic-complexity DoS (`Vec`, `HashSet`)
 
-**Mechanism (Vec).** `Vec::join`/`meet` are `O(n²)`/`O(n·m)` ([engineering/02 §2](02-performance.md)) because
+**Mechanism (Vec).** `Vec::join`/`meet` are $`O(n^2)`$/$`O(n \cdot m)`$ ([engineering/02 §2](02-performance.md)) because
 membership is a linear scan. An adversary who controls the size of merged vectors can force quadratic blow-up:
-merging two attacker-supplied `Vec`s of length `N` costs `Θ(N²)` — a classic algorithmic-complexity
+merging two attacker-supplied `Vec`s of length $`N`$ costs $`\Theta(N^2)`$ — a classic algorithmic-complexity
 denial-of-service.
 
-**Mechanism (HashSet).** `HashSet`'s expected `O(1)` lookups degrade to `O(n)` under **hash-flooding**: an
-adversary who knows (or can probe) the hasher crafts elements that all collide into one bucket, turning a union
-into quadratic work. Rust's default `SipHash` is keyed and resistant, but a downstream crate that swapped in a
+**Mechanism (HashSet).** `HashSet`'s expected $`O(1)`$ lookups degrade to $`O(n)`$ under **hash-flooding**
+(Crosby & Wallach 2003): an adversary who knows (or can probe) the hasher crafts elements that all collide into
+one bucket, turning a union into quadratic work. Rust's default `SipHash` (Aumasson & Bernstein 2012) is keyed
+and resistant, but a downstream crate that swapped in a
 fast non-keyed hasher (`FxHashMap`, `ahash` without a random seed) for speed reopens the hole.
 
 **Mitigation.**
@@ -103,5 +104,19 @@ entirely in the *values* callers choose to merge, which §2–§4 tell you how t
 - [ ] Keep a keyed/DoS-resistant hasher for untrusted `HashSet` elements.
 - [ ] Property-test every custom `Lattice` impl for the four laws in CI.
 - [ ] Rely on the no-`unsafe`/no-panic/no-dependency guarantees — and re-verify them on upgrade.
+
+---
+
+## References
+
+1. Aumasson, J.-P., & Bernstein, D. J. (2012). SipHash: a fast short-input PRF. In *INDOCRYPT 2012* (Progress
+   in Cryptology), LNCS 7668, 489–508. Springer. <https://doi.org/10.1007/978-3-642-34931-7_28> — the keyed
+   PRF behind Rust's default `HashMap`/`HashSet` hasher.
+2. Crosby, S. A., & Wallach, D. S. (2003). Denial of service via algorithmic complexity attacks. In
+   *Proceedings of the 12th USENIX Security Symposium*.
+   <https://www.usenix.org/conference/12th-usenix-security-symposium/denial-service-algorithmic-complexity-attacks>
+   — hash-flooding and worst-case input attacks on hash tables and unindexed structures.
+
+---
 
 → Back to the [engineering index](../README.md#engineering) or the [docs home](../README.md).

@@ -9,18 +9,18 @@
 
 ## Context
 
-Every **idempotent semiring** (dioid) `(S, ⊕, ⊗, 0̄, 1̄)` carries a join-semilattice for free: its addition `⊕`
-is commutative, associative, and idempotent, so it *is* a `join`, with natural order `a ⊑ b ⟺ a ⊕ b = b` and
-least element `0̄` (proved in [theory/04 §2](../../theory/04-semiring-bridge.md#2-every-idempotent-semiring-carries-a-join-semilattice--for-free)).
+Every **idempotent semiring** (dioid) $`(S, \oplus, \otimes, \bar{0}, \bar{1})`$ carries a join-semilattice for free: its addition $`\oplus`$
+is commutative, associative, and idempotent, so it *is* a `join`, with natural order $`a \sqsubseteq b \iff a \oplus b = b`$ and
+least element $`\bar{0}`$ (proved in [theory/04 §2](../../theory/04-semiring-bridge.md#2-every-idempotent-semiring-carries-a-join-semilattice--for-free)).
 It is therefore tempting to provide, *in `llattice`*, a blanket `impl<S: IdempotentSemiring> Lattice for S`.
 
 Two forces push against putting it here:
 
 1. **The leaf invariant.** `llattice` must stay dependency-free and vocabulary-only ([ADR-0001](0001-extract-llattice-leaf-crate.md)).
    Hosting the bridge would require `llattice` to know about semiring types, bloating the leaf.
-2. **The `⊗`/`⊓` category error.** A semiring's multiplication `⊗` is **path composition**, *not* lattice meet
-   (`⊗` is generally non-idempotent and may be non-commutative). Code that defines the bridge must understand
-   this so it never wires `⊗` to `meet`. That understanding belongs with the semiring types.
+2. **The $`\otimes`$/$`\sqcap`$ category error.** A semiring's multiplication $`\otimes`$ is **path composition**, *not* lattice meet
+   ($`\otimes`$ is generally non-idempotent and may be non-commutative). Code that defines the bridge must understand
+   this so it never wires $`\otimes`$ to `meet`. That understanding belongs with the semiring types.
 
 There is also a hard constraint: the **orphan rule**. The blanket impl `impl<S: IdempotentSemiring> Lattice for S`
 is legal only in a crate that owns `IdempotentSemiring` (or `Lattice`). `IdempotentSemiring` is owned by
@@ -30,7 +30,7 @@ is legal only in a crate that owns `IdempotentSemiring` (or `Lattice`). `Idempot
 
 **The semiring↔lattice bridge lives in `lling-llang`.** `lling-llang` owns `trait IdempotentSemiring`, defines
 the dioid instances (tropical, max-plus, Viterbi, Boolean), and provides
-`impl<S: IdempotentSemiring> Lattice for S` that exposes `⊕` as `join`. `llattice` knows nothing about
+`impl<S: IdempotentSemiring> Lattice for S` that exposes $`\oplus`$ as `join`. `llattice` knows nothing about
 semirings.
 
 ## Consequences
@@ -38,8 +38,8 @@ semirings.
 **Positive**
 
 - **`llattice` stays a pure leaf** — zero dependencies, vocabulary only.
-- **The category error is unrepresentable in `llattice`.** With no `⊗` in scope, no one can accidentally bind
-  `⊗` to `meet` here; the dangerous identification can only be written where `⊗` lives, under code that knows
+- **The category error is unrepresentable in `llattice`.** With no $`\otimes`$ in scope, no one can accidentally bind
+  $`\otimes`$ to `meet` here; the dangerous identification can only be written where $`\otimes`$ lives, under code that knows
   it is path composition.
 - **Orphan-rule-correct by construction.** `lling-llang` owns `IdempotentSemiring`, so the blanket impl is
   legal exactly there and nowhere else.
@@ -59,5 +59,5 @@ semirings.
 - **A third "bridge" crate depending on both.** Rejected as unnecessary indirection: `lling-llang` already owns
   the semiring side and may legally host the impl, so a separate crate adds a dependency and a publish target
   for no benefit.
-- **Identify `⊗` with `meet`.** Rejected — a category error that would corrupt every shortest-path / weighted-
+- **Identify $`\otimes`$ with `meet`.** Rejected — a category error that would corrupt every shortest-path / weighted-
   automaton computation (see [theory/04 §3](../../theory/04-semiring-bridge.md#3-why-multiplication-is-not-meet)).

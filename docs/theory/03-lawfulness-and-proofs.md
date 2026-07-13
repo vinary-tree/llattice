@@ -17,10 +17,10 @@ matrix — and proves it impl by impl. It is the authoritative reference behind 
 | | idempotent | commutative | associative | absorption | structure |
 |---|---|---|---|---|---|
 | `uN`/`iN`/`usize`/`isize` | ✅ | ✅ | ✅ | ✅ | bounded distributive **chain** |
-| `f32`/`f64` | ⚠️ fails at `NaN` | ✅ | ⚠️ NaN-free | ⚠️ NaN-free | chain on `[−∞,+∞]`, NaN-free only |
+| `f32`/`f64` | ⚠️ fails at `NaN` | ✅ | ⚠️ NaN-free | ⚠️ NaN-free | chain on $`[-\infty, +\infty]`$, NaN-free only |
 | `bool` | ✅ | ✅ | ✅ | ✅ | two-element **Boolean** lattice |
-| `Option<T>` | ✅¹ | ✅¹ | ✅¹ | ✅¹ | **lift** `T⊥` (adds `⊥ = None`) |
-| `HashSet<T>` | ✅ | ✅ | ✅ | ✅ | distributive, `⊥ = {}`, no `⊤`/`¬` at runtime |
+| `Option<T>` | ✅¹ | ✅¹ | ✅¹ | ✅¹ | **lift** $`T_\bot`$ (adds $`\bot = \text{None}`$) |
+| `HashSet<T>` | ✅ | ✅ | ✅ | ✅ | distributive, $`\bot = \{\}`$, no $`\top`$/$`\lnot`$ at runtime |
 | `Vec<T>` | ✅ (dedup) | ⚠️ up to content-eq | ⚠️ up to content-eq | ❌ fails on raw `Vec` | **join-semilattice** on the content quotient |
 
 Legend: ✅ holds under structural `==`; ⚠️ holds only up to content-equality or on the NaN-free subset;
@@ -30,21 +30,21 @@ Legend: ✅ holds under structural `==`; ⚠️ holds only up to content-equalit
 
 ## 2. Numeric types — `join = max`, `meet = min`
 
-For any `Ord` numeric type the impl is `a.join(b) = max(a,b)`, `a.meet(b) = min(a,b)`, and `⊑` is `≤`.
+For any `Ord` numeric type the impl is `a.join(b)` $`= \max(a,b)`$, `a.meet(b)` $`= \min(a,b)`$, and $`\sqsubseteq`$ is $`\leq`$.
 
 **Claim.** Each numeric type is a bounded distributive lattice that is a *chain* (totally ordered).
 
-**Proof.** `≤` is a total order, so for any `a, b` either `a ≤ b` or `b ≤ a`; in the first case
-`max(a,b) = b` and `min(a,b) = a`, in the second the reverse. The four laws follow from elementary properties
-of `max`/`min` on a total order:
+**Proof.** $`\leq`$ is a total order, so for any $`a, b`$ either $`a \leq b`$ or $`b \leq a`$; in the first case
+$`\max(a,b) = b`$ and $`\min(a,b) = a`$, in the second the reverse. The four laws follow from elementary properties
+of $`\max`$/$`\min`$ on a total order:
 
-- *Idempotency:* `max(a,a) = a`, `min(a,a) = a`.
-- *Commutativity:* `max`/`min` are symmetric.
-- *Associativity:* `max(max(a,b),c) = max(a,b,c) = max(a,max(b,c))`; dually for `min`.
-- *Absorption:* `max(a, min(a,b)) = a` since `min(a,b) ≤ a`; `min(a, max(a,b)) = a` since `a ≤ max(a,b)`.
+- *Idempotency:* $`\max(a,a) = a`$, $`\min(a,a) = a`$.
+- *Commutativity:* $`\max`$/$`\min`$ are symmetric.
+- *Associativity:* $`\max(\max(a,b),c) = \max(a,b,c) = \max(a,\max(b,c))`$; dually for $`\min`$.
+- *Absorption:* $`\max(a, \min(a,b)) = a`$ since $`\min(a,b) \leq a`$; $`\min(a, \max(a,b)) = a`$ since $`a \leq \max(a,b)`$.
 
-Distributivity holds because every chain is distributive (a chain contains no incomparable pair, hence no `M₃`
-or `N₅`; see [02 §5](02-semilattices-lattices.md#5-distributivity-and-the-two-forbidden-sublattices)).
+Distributivity holds because every chain is distributive (a chain contains no incomparable pair, hence no $`M_3`$
+or $`N_5`$; see [02 §5](02-semilattices-lattices.md#5-distributivity-and-the-two-forbidden-sublattices)).
 Boundedness is `MIN`/`MAX`. ∎
 
 These impls are the gold standard: every law holds under the machine `==`, with no caveats.
@@ -53,40 +53,40 @@ These impls are the gold standard: every law holds under the machine `==`, with 
 
 ## 3. `bool` — the two-element Boolean lattice
 
-`true.join(b) = a || b`, `a.meet(b) = a && b`, `⊥ = false`, `⊤ = true`.
+`true.join(b) = a || b`, `a.meet(b) = a && b`, $`\bot = \text{false}`$, $`\top = \text{true}`$.
 
 **Claim.** `bool` is the two-element Boolean lattice (the smallest non-degenerate Boolean algebra).
 
-**Proof.** `bool` is the chain `false ≤ true`, so by §2 it is a bounded distributive lattice. It is
-**complemented**: `¬false = true`, `¬true = false`, and `a || ¬a = true = ⊤`, `a && ¬a = false = ⊥`. A bounded
+**Proof.** `bool` is the chain $`\text{false} \leq \text{true}`$, so by §2 it is a bounded distributive lattice. It is
+**complemented**: $`\lnot \text{false} = \text{true}`$, $`\lnot \text{true} = \text{false}`$, and $`a \lor \lnot a = \text{true} = \top`$, $`a \land \lnot a = \text{false} = \bot`$. A bounded
 distributive complemented lattice is a Boolean algebra. ∎
 
-Every other Boolean impl is built from this one: `𝒫(U) ≅ 2^U` (a product of copies of `bool`), which is the
+Every other Boolean impl is built from this one: $`\mathcal{P}(U) \cong 2^U`$ (a product of copies of `bool`), which is the
 unifying isomorphism of [02 §4](02-semilattices-lattices.md#atoms-coatoms-and-2u).
 
 ---
 
 ## 4. `HashSet<T>` — union and intersection
 
-`a.join(b) = a ∪ b`, `a.meet(b) = a ∩ b`, `⊑` is `⊆`, `⊥ = {}`.
+`a.join(b)` $`= a \cup b`$, `a.meet(b)` $`= a \cap b`$, $`\sqsubseteq`$ is $`\subseteq`$, $`\bot = \{\}`$.
 
-**Claim (mathematical).** The power set `𝒫(U)` of any universe `U`, ordered by `⊆`, is a **complete atomic
-Boolean algebra**: atoms are singletons, complement is set-complement in `U`, arbitrary unions/intersections
+**Claim (mathematical).** The power set $`\mathcal{P}(U)`$ of any universe $`U`$, ordered by $`\subseteq`$, is a **complete atomic
+Boolean algebra**: atoms are singletons, complement is set-complement in $`U`$, arbitrary unions/intersections
 exist.
 
 **Proof.** Union and intersection are idempotent, commutative, and associative; absorption is
-`a ∪ (a ∩ b) = a` and `a ∩ (a ∪ b) = a`, both immediate from `a ∩ b ⊆ a ⊆ a ∪ b`. Distributivity of `∩` over
-`∪` is the standard set identity. Completeness: `⋃` and `⋂` of any family of subsets are subsets. Complement
-`¬S = U ∖ S` satisfies `S ∪ ¬S = U = ⊤`, `S ∩ ¬S = {} = ⊥`. ∎
+$`a \cup (a \cap b) = a`$ and $`a \cap (a \cup b) = a`$, both immediate from $`a \cap b \subseteq a \subseteq a \cup b`$. Distributivity of $`\cap`$ over
+$`\cup`$ is the standard set identity. Completeness: $`\bigcup`$ and $`\bigcap`$ of any family of subsets are subsets. Complement
+$`\lnot S = U \setminus S`$ satisfies $`S \cup \lnot S = U = \top`$, $`S \cap \lnot S = \{\} = \bot`$. ∎
 
 **Claim (the runtime impl is a *fragment*).** The Rust type `HashSet<T>` models subsets of the *open,
-unbounded* universe of all `T` values. It therefore has `⊥ = {}` but **no `⊤`** (no greatest finite set when
-`T` is infinite) and **no computable complement** (`U ∖ S` is not finite). So at runtime `HashSet<T>` realises
+unbounded* universe of all `T` values. It therefore has $`\bot = \{\}`$ but **no $`\top`$** (no greatest finite set when
+`T` is infinite) and **no computable complement** ($`U \setminus S`$ is not finite). So at runtime `HashSet<T>` realises
 the **bounded-below distributive lattice** fragment — the join-semilattice with bottom plus a meet — *not* the
-full Boolean algebra. The Boolean/complete structure is recovered only once you fix a finite universe `U`.
+full Boolean algebra. The Boolean/complete structure is recovered only once you fix a finite universe $`U`$.
 
 This distinction is carried into [design/03 — semantics](../design/03-semantics.md), which is careful never to
-promise a `HashSet` `⊤`.
+promise a `HashSet` $`\top`$.
 
 ---
 
@@ -114,17 +114,17 @@ fn meet(&self, other: &Self) -> Self {
 
 ![Control flow of Option::join — the four-way match](../design/figures/option-join-flow.svg)
 
-**Claim.** `Option<T>` is the **lift** `T⊥`: it adjoins a fresh least element `None` below an order-isomorphic
-copy of `T`. If `T` is a lattice then `Option<T>` is a lattice, with `⊥ = None`, induced order
-`None ⊑ Some(_)` and `Some(a) ⊑ Some(b) ⟺ a ⊑ b`, and (if `T` has a top) `⊤ = Some(⊤_T)`.
+**Claim.** `Option<T>` is the **lift** $`T_\bot`$: it adjoins a fresh least element `None` below an order-isomorphic
+copy of `T`. If `T` is a lattice then `Option<T>` is a lattice, with $`\bot = \text{None}`$, induced order
+$`\text{None} \sqsubseteq \text{Some}(\_)`$ and $`\text{Some}(a) \sqsubseteq \text{Some}(b) \iff a \sqsubseteq b`$, and (if `T` has a top) $`\top = \text{Some}(\top_T)`$.
 
-**Proof.** `None` is the identity for `⊔` (`None ⊔ x = x` by the match) and the annihilator for `⊓`
-(`None ⊓ x = None`), which is exactly "a new bottom". On `Some(_)` both operations recurse:
-`Some(a) ⊔ Some(b) = Some(a ⊔ b)`, `Some(a) ⊓ Some(b) = Some(a ⊓ b)`. Each law lifts by case analysis on the
+**Proof.** `None` is the identity for $`\sqcup`$ ($`\text{None} \sqcup x = x`$ by the match) and the annihilator for $`\sqcap`$
+($`\text{None} \sqcap x = \text{None}`$), which is exactly "a new bottom". On `Some(_)` both operations recurse:
+$`\text{Some}(a) \sqcup \text{Some}(b) = \text{Some}(a \sqcup b)`$, $`\text{Some}(a) \sqcap \text{Some}(b) = \text{Some}(a \sqcap b)`$. Each law lifts by case analysis on the
 match; we show absorption, the subtlest:
 
-- `None ⊔ (None ⊓ x) = None ⊔ None = None` ✓ and `Some(a) ⊔ (Some(a) ⊓ None) = Some(a) ⊔ None = Some(a)` ✓.
-- `Some(a) ⊔ (Some(a) ⊓ Some(b)) = Some(a) ⊔ Some(a ⊓ b) = Some(a ⊔ (a ⊓ b)) = Some(a)` by `T`'s absorption ✓.
+- $`\text{None} \sqcup (\text{None} \sqcap x) = \text{None} \sqcup \text{None} = \text{None}`$ ✓ and $`\text{Some}(a) \sqcup (\text{Some}(a) \sqcap \text{None}) = \text{Some}(a) \sqcup \text{None} = \text{Some}(a)`$ ✓.
+- $`\text{Some}(a) \sqcup (\text{Some}(a) \sqcap \text{Some}(b)) = \text{Some}(a) \sqcup \text{Some}(a \sqcap b) = \text{Some}(a \sqcup (a \sqcap b)) = \text{Some}(a)`$ by `T`'s absorption ✓.
 
 The remaining laws are analogous. ∎
 
@@ -140,24 +140,24 @@ The remaining laws are analogous. ∎
 `maxNum`/`minNum` operations: **if exactly one argument is `NaN`, the other is returned**; if both are `NaN`,
 `NaN` is returned.
 
-**Claim (positive).** On the NaN-free extended reals `[−∞, +∞]`, `f32`/`f64` form a bounded lattice — in fact
-a **chain** — with `⊥ = −∞`, `⊤ = +∞`. (Proof: identical to §2; the values are totally ordered.)
+**Claim (positive).** On the NaN-free extended reals $`[-\infty, +\infty]`$, `f32`/`f64` form a bounded lattice — in fact
+a **chain** — with $`\bot = -\infty`$, $`\top = +\infty`$. (Proof: identical to §2; the values are totally ordered.)
 
 **Claim (negative — the defect).** On the full set including `NaN`, the lattice laws fail:
 
 - **Idempotency fails under `==`.** `NaN.join(&NaN)` evaluates to `NaN` (both args `NaN`), but `NaN == NaN` is
-  `false`. So `a ⊔ a = a` does **not** hold at `a = NaN` *when equality is structural `==`*. This is the
+  `false`. So $`a \sqcup a = a`$ does **not** hold at $`a = \text{NaN}`$ *when equality is structural `==`*. This is the
   decisive failure: a property test `a.join(&a) == a` returns `false` for `NaN`.
-- **The order breaks.** `NaN.partial_cmp(&x)` is `None` for every `x` — `NaN` is incomparable. So `(f64, ≤)` is
+- **The order breaks.** `NaN.partial_cmp(&x)` is `None` for every `x` — `NaN` is incomparable. So (`f64`, $`\leq`$) is
   only a *partial* order, and the connecting theorem
-  ([02 §3](02-semilattices-lattices.md#3-the-orderoperation-bridge)) `a ⊑ b ⟺ a ⊔ b = b` has no content at
+  ([02 §3](02-semilattices-lattices.md#3-the-orderoperation-bridge)) $`a \sqsubseteq b \iff a \sqcup b = b`$ has no content at
   `NaN`.
-- **Silent data loss.** Because `max(NaN, x) = x`, a fold of `[3.0, NaN, 5.0]` under `⊔` returns `5.0` — the
+- **Silent data loss.** Because $`\max(\text{NaN}, x) = x`$, a fold of `[3.0, NaN, 5.0]` under $`\sqcup`$ returns `5.0` — the
   `NaN` simply vanishes rather than poisoning or being rejected.
 
 ![Two NaN failure modes: silent drop, and the broken order](../engineering/figures/nan-poison.svg)
 
-**Non-issue: signed zero.** `-0.0 == 0.0` is `true` and `max`/`min` treat them as equal, so signed zero breaks
+**Non-issue: signed zero.** `-0.0 == 0.0` is `true` and $`\max`$/$`\min`$ treat them as equal, so signed zero breaks
 nothing — mentioned only to forestall the question.
 
 **Practical rule.** Use the float impl only on values you have already excluded `NaN` from (validate at the
@@ -185,7 +185,7 @@ fn meet(&self, other: &Self) -> Self {        // intersection, in self's order (
 The temptation is to call this "the lattice of finite sequences". It is **not** a lattice on `Vec` *values*.
 Two things go wrong, and the documentation must state both.
 
-**Defect 1 — commutativity holds only up to content-equality.** Define content-equality `a ≈ b` to mean "same
+**Defect 1 — commutativity holds only up to content-equality.** Define content-equality $`a \approx b`$ to mean "same
 set of elements". Then:
 
 ```text
@@ -194,25 +194,25 @@ set of elements". Then:
 [1,2] ≈ [2,1]   but   [1,2] ≠ [2,1]   as Vec values
 ```
 
-So `a ⊔ b = b ⊔ a` holds under `≈` but **fails** under structural `Vec::==` — `join` is *left-biased* in the
-ordering of its result. Associativity is likewise only an `≈`-identity.
+So $`a \sqcup b = b \sqcup a`$ holds under $`\approx`$ but **fails** under structural `Vec::==` — `join` is *left-biased* in the
+ordering of its result. Associativity is likewise only an $`\approx`$-identity.
 
 **Defect 2 — absorption is not a `Vec`-value law, and `meet` is not a true glb.** `meet` keeps the *left*
 operand's elements in the *left* operand's order, discarding the right operand's ordering entirely. Hence
-`x ⊓ y` and `y ⊓ x` can differ as `Vec` values even when their *contents* agree, so `⊓` is commutative only up
-to `≈`. Because `⊓`'s result order tracks the left operand while `⊔`'s does too but with the opposite bias, the
-absorption identities `a ⊔ (a ⊓ b) = a` and `a ⊓ (a ⊔ b) = a` are **not** identities on raw `Vec` values in
-general; they hold only after quotienting by `≈`.
+$`x \sqcap y`$ and $`y \sqcap x`$ can differ as `Vec` values even when their *contents* agree, so $`\sqcap`$ is commutative only up
+to $`\approx`$. Because $`\sqcap`$'s result order tracks the left operand while $`\sqcup`$'s does too but with the opposite bias, the
+absorption identities $`a \sqcup (a \sqcap b) = a`$ and $`a \sqcap (a \sqcup b) = a`$ are **not** identities on raw `Vec` values in
+general; they hold only after quotienting by $`\approx`$.
 
 **Correct framing.** Treat a `Vec` as *the set of its elements, with insertion order kept as a canonical
-representative*. On the quotient `Vec/≈`:
+representative*. On the quotient $`\text{Vec}/{\approx}`$:
 
 - `Vec::join` is a genuine **join-semilattice** operation, order-isomorphic to finite-`HashSet` union;
 - `Vec::meet` computes set intersection on contents (a derived greatest lower bound on the quotient).
 
 So `(Vec, join, meet)` is best described as a **join-semilattice on the content quotient with a derived
-intersection** — *idempotency holds even on raw `Vec`* (dedup makes `v.join(&v) ≈ v` and in fact `= v` when `v`
-has no duplicates), while commutativity/associativity hold up to `≈` and absorption holds only on `Vec/≈`.
+intersection** — *idempotency holds even on raw `Vec`* (dedup makes `v.join(&v)` $`\approx v`$ and in fact $`= v`$ when `v`
+has no duplicates), while commutativity/associativity hold up to $`\approx`$ and absorption holds only on $`\text{Vec}/{\approx}`$.
 Property tests must therefore normalise (sort/dedup) before comparing — see
 [engineering/01 — testing](../engineering/01-testing.md).
 
@@ -227,10 +227,10 @@ Property tests must therefore normalise (sort/dedup) before comparing — see
 
 The honest one-line status per impl:
 
-- **Numbers, `bool`, `HashSet`:** lawful lattices under `==`, no caveats (`HashSet` lacks a runtime `⊤`/`¬`).
+- **Numbers, `bool`, `HashSet`:** lawful lattices under `==`, no caveats (`HashSet` lacks a runtime $`\top`$/$`\lnot`$).
 - **`Option<T>`:** a lawful lift — *as lawful as `T`*.
-- **`f32`/`f64`:** a lawful chain on the NaN-free `[−∞,+∞]`; `NaN` breaks idempotency-under-`==` and the order.
-- **`Vec<T>`:** a join-semilattice on the content quotient; commutativity/associativity up to `≈`, absorption
+- **`f32`/`f64`:** a lawful chain on the NaN-free $`[-\infty, +\infty]`$; `NaN` breaks idempotency-under-`==` and the order.
+- **`Vec<T>`:** a join-semilattice on the content quotient; commutativity/associativity up to $`\approx`$, absorption
   only on the quotient.
 
 → Continue to **[04 — The semiring bridge](04-semiring-bridge.md)**, or jump to

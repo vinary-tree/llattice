@@ -1,7 +1,7 @@
 # CRDT Cookbook
 
 > **Goal.** Build **state-based Convergent Replicated Data Types (CvRDTs)** out of `Lattice`. Every recipe is a
-> self-contained, compilable `Lattice` instance whose merge is `join`. Because `⊔` is idempotent, commutative,
+> self-contained, compilable `Lattice` instance whose merge is `join`. Because $`\sqcup`$ is idempotent, commutative,
 > and associative ([theory/02 §2](../theory/02-semilattices-lattices.md)), replicas converge with **no
 > coordination** — no consensus round-trip, no conflict resolution.
 
@@ -13,7 +13,7 @@ In Shapiro et al.'s formulation, each replica holds a value from a join-semilatt
 states is their `join`. Replicas that have observed the same set of updates converge to the **identical** state,
 *regardless of the order, duplication, or batching* of merges:
 
-![Three replicas merging a G-Set in different orders converge to the same state](figures/crdt-convergence.png)
+![Three replicas merging a G-Set in different orders converge to the same state](figures/crdt-convergence.svg)
 
 The grow-only set (**G-Set**) is the simplest CvRDT and needs no custom code — `HashSet`'s built-in lattice *is*
 a G-Set:
@@ -33,9 +33,9 @@ assert_eq!(merged, ["alice", "bob", "carol"].into_iter().collect());
 assert_eq!(merged, r3.join(&r1).join(&r2)); // order-independent (convergence)
 ```
 
-> **Why no seed?** The empty set `{}` is the lattice bottom for `HashSet`, so it is the natural identity to fold
+> **Why no seed?** The empty set $`\{\}`$ is the lattice bottom for `HashSet`, so it is the natural identity to fold
 > from. The trait itself has no generic `bottom()` ([design/03 §1](../design/03-semantics.md)), so you supply
-> the concrete `⊥` — here `HashSet::new()` — when folding from nothing.
+> the concrete $`\bot`$ — here `HashSet::new()` — when folding from nothing.
 
 ---
 
@@ -79,7 +79,7 @@ assert_eq!(merged.join(&a), merged); // re-merging an already-seen state changes
 
 ## 3. Positive-negative counter (PN-Counter)
 
-To allow decrements, keep **two** G-Counters — increments `p` and decrements `n` — and report `sum(p) − sum(n)`.
+To allow decrements, keep **two** G-Counters — increments `p` and decrements `n` — and report $`\operatorname{sum}(p) - \operatorname{sum}(n)`$.
 A product of two lattices is a lattice, so this composes for free:
 
 ```rust
@@ -165,7 +165,7 @@ let b = VersionVector(vec![2, 4]);
 assert_eq!(a.join(&b), VersionVector(vec![3, 4])); // causal join: max per replica
 ```
 
-This is also the `2^U`-style product that the [isomorphism in theory/02 §4](../theory/02-semilattices-lattices.md)
+This is also the $`2^U`$-style product that the [isomorphism in theory/02 §4](../theory/02-semilattices-lattices.md)
 unifies with `bool` and `HashSet`.
 
 ---
@@ -209,7 +209,7 @@ al.'s comprehensive study.
 
 ## 8. Why this works, in one line
 
-A CvRDT is *exactly* "a value in a join-semilattice, merged by `⊔`". `llattice` gives you the `⊔`; idempotency,
+A CvRDT is *exactly* "a value in a join-semilattice, merged by $`\sqcup`$". `llattice` gives you the $`\sqcup`$; idempotency,
 commutativity, and associativity give you eventual consistency without coordination. Verify any custom CRDT's
 lawfulness with the [property tests in engineering/01](../engineering/01-testing.md).
 

@@ -21,29 +21,29 @@ pub trait Lattice: Clone + Send + Sync {
 - **`# Panics`: none.** No built-in impl contains `panic!`, `unwrap`, `expect`, indexing, or arithmetic that
   can overflow — `max`/`min`/set-ops/`clone` are panic-free.
 - **No `bottom()` / `top()` in the trait.** The trait intentionally exposes *only* the two binary operations.
-  `⊥` and `⊤` exist *per impl* (see the table below) but are **not** part of the contract. Consequences:
+  $`\bot`$ and $`\top`$ exist *per impl* (see the table below) but are **not** part of the contract. Consequences:
   - You cannot write a fully generic `fold` from an empty seed over arbitrary `L: Lattice` — there is no generic
     identity. Seed folds with a concrete bottom you supply (e.g. `HashSet::new()`); see
     [guides/03](../guides/03-crdt-cookbook.md).
   - This keeps the trait minimal and implementable by *unbounded* lattices (like `HashSet`, which has no runtime
-    `⊤`). A bounded-lattice extension could add `fn bottom() -> Self` later without breaking this one.
+    $`\top`$). A bounded-lattice extension could add `fn bottom() -> Self` later without breaking this one.
 
 ---
 
 ## 2. The semantics table
 
-For each impl: the carrier set, the induced order `⊑`, what `join`/`meet` compute, the bounds, and a pointer to
+For each impl: the carrier set, the induced order $`\sqsubseteq`$, what `join`/`meet` compute, the bounds, and a pointer to
 the lawfulness scope.
 
-| Impl | `⊑` (induced order) | `join` (⊔) | `meet` (⊓) | `⊥` | `⊤` | Lawfulness |
+| Impl | $`\sqsubseteq`$ (induced order) | `join` ($`\sqcup`$) | `meet` ($`\sqcap`$) | $`\bot`$ | $`\top`$ | Lawfulness |
 |------|---------------------|-----------|-----------|-----|-----|------------|
-| `u8 … u128`, `usize` | `≤` | `max` | `min` | `0` | `MAX` | full ([03 §2](../theory/03-lawfulness-and-proofs.md#2-numeric-types--join--max-meet--min)) |
-| `i8 … i128`, `isize` | `≤` | `max` | `min` | `MIN` | `MAX` | full |
-| `f32`, `f64` | `≤` (partial; `NaN` incomparable) | `max` | `min` | `−∞` | `+∞` | **NaN-free only** ([03 §6](../theory/03-lawfulness-and-proofs.md#6-f32--f64--lawful-only-on-the-nan-free-extended-reals)) |
-| `bool` | `false ≤ true` | `‖` (OR) | `&&` (AND) | `false` | `true` | full (Boolean) |
-| `Option<T: Lattice>` | `None ⊑ Some(_)`; `Some(a) ⊑ Some(b) ⟺ a ⊑ b` | see below | see below | `None` | `Some(⊤_T)` if `T` has `⊤` | **inherits `T`** ([03 §5](../theory/03-lawfulness-and-proofs.md#5-optiont--the-lift-bottom-adjunction)) |
-| `HashSet<T: Eq+Hash>` | `⊆` | `∪` (union) | `∩` (intersection) | `{}` | *(none at runtime)* | full; no `⊤`/`¬` ([03 §4](../theory/03-lawfulness-and-proofs.md#4-hashsett--union-and-intersection)) |
-| `Vec<T: Eq>` | `⊆` on contents (left-biased order) | concat + dedup | left-biased ∩ | `[]` | *(none)* | **join-semilattice up to content-eq** ([03 §7](../theory/03-lawfulness-and-proofs.md#7-vect--a-join-semilattice-on-the-content-quotient)) |
+| `u8 … u128`, `usize` | $`\leq`$ | `max` | `min` | `0` | `MAX` | full ([03 §2](../theory/03-lawfulness-and-proofs.md#2-numeric-types--join--max-meet--min)) |
+| `i8 … i128`, `isize` | $`\leq`$ | `max` | `min` | `MIN` | `MAX` | full |
+| `f32`, `f64` | $`\leq`$ (partial; `NaN` incomparable) | `max` | `min` | $`-\infty`$ | $`+\infty`$ | **NaN-free only** ([03 §6](../theory/03-lawfulness-and-proofs.md#6-f32--f64--lawful-only-on-the-nan-free-extended-reals)) |
+| `bool` | `false` $`\leq`$ `true` | $`\lor`$ (OR) | $`\land`$ (AND) | `false` | `true` | full (Boolean) |
+| `Option<T: Lattice>` | $`\mathrm{None} \sqsubseteq \mathrm{Some}(\_)`$; $`\mathrm{Some}(a) \sqsubseteq \mathrm{Some}(b) \iff a \sqsubseteq b`$ | see below | see below | `None` | $`\mathrm{Some}(\top_T)`$ if `T` has $`\top`$ | **inherits `T`** ([03 §5](../theory/03-lawfulness-and-proofs.md#5-optiont--the-lift-bottom-adjunction)) |
+| `HashSet<T: Clone + Eq + Hash + Send + Sync>` | $`\subseteq`$ | $`\cup`$ (union) | $`\cap`$ (intersection) | `{}` | *(none at runtime)* | full; no $`\top`$/$`\lnot`$ ([03 §4](../theory/03-lawfulness-and-proofs.md#4-hashsett--union-and-intersection)) |
+| `Vec<T: Clone + Eq + Send + Sync>` | $`\subseteq`$ on contents (left-biased order) | concat + dedup | left-biased $`\cap`$ | `[]` | *(none)* | **join-semilattice up to content-eq** ([03 §7](../theory/03-lawfulness-and-proofs.md#7-vect--a-join-semilattice-on-the-content-quotient)) |
 
 ---
 
@@ -63,7 +63,7 @@ assert_eq!(Some(5u32).join(&Some(3)),  Some(5)); // recurses: max(5,3)
 assert_eq!(Some(5u32).meet(&Some(3)),  Some(3)); // recurses: min(5,3)
 ```
 
-`join` fills in a value if *either* side has one; `meet` requires *both*. This is the lift `T⊥`.
+`join` fills in a value if *either* side has one; `meet` requires *both*. This is the lift $`T_\bot`$.
 
 ### `HashSet<T>`
 
@@ -115,7 +115,7 @@ Validate away `NaN` at your boundary before using the float impl in any order-de
 
 The crate's public surface is exactly: the `Lattice` trait, its two methods, and the impls listed above. Every
 public item carries a doc-comment with at least one `# Examples` block; the trait and methods additionally state
-their `⊔`/`⊓` meaning and the laws (with the scoped lawfulness pointer added by this documentation pass). Because
+their $`\sqcup`$/$`\sqcap`$ meaning and the laws (with the scoped lawfulness pointer added by this documentation pass). Because
 the surface is so small, **100 % rustdoc coverage** is both achievable and maintained — verify with
 `cargo doc --no-deps` (no missing-docs warnings) and the doctest run described in
 [engineering/01](../engineering/01-testing.md).

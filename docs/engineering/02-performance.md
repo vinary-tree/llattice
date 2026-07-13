@@ -1,8 +1,8 @@
 # Performance
 
 > **Goal.** State the time and space complexity of every `join`/`meet`, present the non-trivial algorithms
-> (`Vec`) in literate form, and give a clear rule for choosing between `Vec` and `HashSet`. Symbols: `n = |self|`,
-> `m = |other|`.
+> (`Vec`) in literate form, and give a clear rule for choosing between `Vec` and `HashSet`. Symbols: $`n = \lvert \texttt{self} \rvert`$,
+> $`m = \lvert \texttt{other} \rvert`$.
 
 ---
 
@@ -10,10 +10,10 @@
 
 | Impl | `join` time | `meet` time | Extra space | Notes |
 |------|-------------|-------------|-------------|-------|
-| `uN`/`iN`/`f32`/`f64`/`bool` | `Θ(1)` | `Θ(1)` | `Θ(1)` | a single `max`/`min`/branch; `#[inline]` |
-| `Option<T>` | `Θ(1)` + one `T` op | `Θ(1)` + one `T` op | one `T` clone | recurses into `T` only in the `Some/Some` case |
-| `HashSet<T>` | `Θ(n + m)` expected | `Θ(min(n, m))` expected | new set | hash ops are expected-`O(1)`; see §4 |
-| `Vec<T>` | `O((n + m)·n)` = **`O(n²)`** | `O(n·m)` | new vec | linear `contains` inside a loop — quadratic; see §2–3 |
+| `uN`/`iN`/`f32`/`f64`/`bool` | $`\Theta(1)`$ | $`\Theta(1)`$ | $`\Theta(1)`$ | a single `max`/`min`/branch; `#[inline]` |
+| `Option<T>` | $`\Theta(1)`$ + one `T` op | $`\Theta(1)`$ + one `T` op | one `T` clone | recurses into `T` only in the `Some/Some` case |
+| `HashSet<T>` | $`\Theta(n + m)`$ expected | $`\Theta(\min(n, m))`$ expected | new set | hash ops are expected-$`O(1)`$; see §4 |
+| `Vec<T>` | $`O((n+m)\cdot n)`$ = **$`O(n^2)`$** | $`O(n \cdot m)`$ | new vec | linear `contains` inside a loop — quadratic; see §2–3 |
 
 The numeric and `bool` impls are constant-time and allocation-free. `Option` adds at most one wrapped-type
 operation and one clone. The two container impls allocate a fresh result (the trait returns owned `Self`); their
@@ -47,8 +47,8 @@ fn join(&self, other: &Self) -> Self {
 
 ![Vec::join control flow](../design/figures/vec-join-flow.svg)
 
-The `result.contains(item)` scan runs in time linear in the current length, inside an `m`-iteration loop, giving
-`O((n + m)·n)` — quadratic in the input size.
+The `result.contains(item)` scan runs in time linear in the current length, inside an $`m`$-iteration loop, giving
+$`O((n+m)\cdot n)`$ — quadratic in the input size.
 
 ### `Vec::meet` — left-biased intersection
 
@@ -66,7 +66,7 @@ fn meet(&self, other: &Self) -> Self {
 
 ![Vec::meet control flow](../design/figures/vec-meet-flow.svg)
 
-This is `Θ(n·m)`.
+This is $`\Theta(n \cdot m)`$.
 
 ---
 
@@ -85,14 +85,14 @@ It is *not* acceptable for large or adversarially-sized inputs — see the algor
 
 ## 4. `HashSet` cost and the choice rule
 
-`HashSet::join` (union) is expected `Θ(n + m)` and `meet` (intersection) iterates the smaller set, expected
-`Θ(min(n, m))` — assuming a well-behaved hasher (each lookup expected `O(1)`). The cost is the hashing constant
+`HashSet::join` (union) is expected $`\Theta(n + m)`$ and `meet` (intersection) iterates the smaller set, expected
+$`\Theta(\min(n, m))`$ — assuming a well-behaved hasher (each lookup expected $`O(1)`$). The cost is the hashing constant
 and the loss of ordering.
 
 > **Rule of thumb.**
 > - Want **set semantics** (membership, union, intersection) on more than a few elements? Use **`HashSet`** — it
 >   is a genuine lattice on values *and* near-linear.
-> - Need to **preserve insertion order** and the collections are **small**? Use **`Vec`**, accepting `O(n²)` and
+> - Need to **preserve insertion order** and the collections are **small**? Use **`Vec`**, accepting $`O(n^2)`$ and
 >   the left-biased, up-to-content laws.
 > - Want both order *and* scale? Neither built-in fits — build a custom `Lattice` over an order-preserving
 >   indexed structure (e.g. an index-map) following [guides/02](../guides/02-implementing-lattice.md).
@@ -104,19 +104,19 @@ and the loss of ordering.
 Every container `join`/`meet` returns a fresh owned collection — there is no in-place merge in the trait
 (`&self`, `&other` ⟶ owned `Self`). Consequences and guidance:
 
-- `Vec::join` starts from `self.clone()` then `push`es; its result has between `n` and `n + m` elements. If you
+- `Vec::join` starts from `self.clone()` then `push`es; its result has between $`n`$ and $`n + m`$ elements. If you
   merge in a hot loop and know the bound, prefer a custom routine that `Vec::with_capacity(n + m)` up front to
   avoid reallocation churn — preallocation is a best practice here, not a premature optimisation.
 - `HashSet::join`/`meet` `collect()` into a new set; for repeated folds, fold into one accumulator
   (`acc = acc.join(&next)`) rather than building a balanced tree of temporaries, to keep peak memory at one
   result-sized set.
-- The scalar impls (`Θ(1)`, allocation-free) impose no such concerns.
+- The scalar impls ($`\Theta(1)`$, allocation-free) impose no such concerns.
 
 ---
 
 ## 6. Benchmarking
 
-The crate ships no benchmarks (its scalar ops are trivially `Θ(1)`), but if you build a custom `Lattice` whose
+The crate ships no benchmarks (its scalar ops are trivially $`\Theta(1)`$), but if you build a custom `Lattice` whose
 `join` is non-trivial, benchmark it with `criterion` (statistically sound per-function timings) and confirm the
 asymptotics on growing inputs before optimising. Profile real folds rather than guessing — the dominant cost is
 almost always the container `contains`/hashing, not the lattice logic.
