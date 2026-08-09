@@ -12,3 +12,6 @@ categories = ["data-structures", "algorithms"]
 readme = "README.md"
 
 [dependencies]
+
+[dev-dependencies]
+proptest = "1"

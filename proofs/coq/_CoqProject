@@ -1,0 +1,7 @@
+# llattice Coq/Rocq proofs
+-Q . Llattice
+
+# The four lattice laws for the built-in impls, plus the order/operation bridge
+LatticeLaws.v
+# Why the f32/f64 impls are lawful only NaN-free
+FloatCaveat.v

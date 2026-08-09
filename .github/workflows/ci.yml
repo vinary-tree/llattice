@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  rust:
+    name: Rust
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - name: Format
+        run: cargo fmt --all -- --check
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+      - name: Test (incl. the lattice-law harness)
+        run: cargo test --all-targets
+      - name: Doctests
+        run: cargo test --doc
+      # python3 is present on ubuntu-latest; the Coq container job builds the
+      # proofs themselves.
+      - name: Lattice invariant registry
+        run: python3 scripts/check-lattice-invariants.py
+
+  proofs:
+    name: Lattice-law proofs
+    runs-on: ubuntu-latest
+    container: coqorg/coq:9.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject unchecked proof escapes
+        run: make -C proofs/coq proof-check
+      - name: Build the Rocq proofs
+        run: make -C proofs/coq

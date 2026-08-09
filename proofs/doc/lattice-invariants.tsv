@@ -1,0 +1,11 @@
+# id	layer	law	spec_kind	spec_path	spec_name	strength	test_path	test_name	gate
+# The llattice invariant registry. llattice has NO resource ABI (its values never
+# cross the vt boundary); these are the algebra laws of the Lattice trait.
+# test_path/test_name '-' marks a formal-only row. Checked by
+#   scripts/check-lattice-invariants.py (invoked from proofs/verify.sh).
+LATT-LAW-1	lattice	join and meet are idempotent	coq	proofs/coq/LatticeLaws.v	zjoin_idempotent	rocq-unbounded	tests/lattice_laws.rs	laws_hold_over_i64	proofs/verify.sh + cargo test --test lattice_laws
+LATT-LAW-2	lattice	join and meet are commutative	coq	proofs/coq/LatticeLaws.v	zjoin_comm	rocq-unbounded	tests/lattice_laws.rs	laws_hold_over_i64	proofs/verify.sh + cargo test --test lattice_laws
+LATT-LAW-3	lattice	join and meet are associative	coq	proofs/coq/LatticeLaws.v	zjoin_assoc	rocq-unbounded	tests/lattice_laws.rs	laws_hold_over_i64	proofs/verify.sh + cargo test --test lattice_laws
+LATT-LAW-4	lattice	the absorption laws hold	coq	proofs/coq/LatticeLaws.v	zabsorb_join_meet	rocq-unbounded	tests/lattice_laws.rs	laws_hold_over_i64	proofs/verify.sh + cargo test --test lattice_laws
+LATT-LAW-5	lattice	the order and operation views coincide (a<=b iff join a b = b)	coq	proofs/coq/LatticeLaws.v	zjoin_order_bridge	rocq-unbounded	-	-	proofs/verify.sh (coqc + make proof-check)
+LATT-FLOAT-1	float-caveat	the f32/f64 impls are lawful only on the NaN-free subset	coq	proofs/coq/FloatCaveat.v	nan_breaks_idempotency	rocq-unbounded	tests/lattice_laws.rs	nan_breaks_idempotency	proofs/verify.sh + cargo test --test lattice_laws
