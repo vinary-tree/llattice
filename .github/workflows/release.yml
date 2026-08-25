@@ -1,0 +1,174 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      registry:
+        description: Validate immutable source or publish exactly one destination
+        required: true
+        default: validate-only
+        type: choice
+        options:
+          - validate-only
+          - github-release
+          - crates-io
+
+permissions:
+  contents: read
+
+concurrency:
+  group: llattice-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  contract:
+    name: Immutable release contract
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@1.95
+      - name: Require the exact Cargo version tag
+        run: >-
+          python3 scripts/check-release-ref.py
+          --ref-type "$GITHUB_REF_TYPE"
+          --ref-name "$GITHUB_REF_NAME"
+      - name: Require a committed lockfile
+        run: |
+          cargo metadata --locked --no-deps --format-version 1 >/dev/null
+          git diff --exit-code -- Cargo.lock
+
+  verify:
+    name: Rust API and lattice laws
+    needs: contract
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with: { persist-credentials: false }
+      - uses: dtolnay/rust-toolchain@1.95
+        with:
+          components: clippy, rustfmt
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --locked --all-targets -- -D warnings
+      - run: cargo test --locked --all-targets
+      - run: cargo test --locked --doc
+      - run: python3 scripts/check-lattice-invariants.py
+      - run: python3 scripts/check-release-ref.py --self-test
+
+  proofs:
+    name: Mechanized lattice laws
+    needs: contract
+    runs-on: ubuntu-24.04
+    container: coqorg/coq:9.1
+    steps:
+      - uses: actions/checkout@v6
+        with: { persist-credentials: false }
+      - name: Reject unchecked proof escapes
+        run: make -C proofs/coq proof-check
+      - name: Build the Rocq proofs
+        run: make -C proofs/coq
+
+  package:
+    name: Reproducible crate candidate
+    needs: [verify, proofs]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with: { persist-credentials: false }
+      - uses: dtolnay/rust-toolchain@1.95
+      - name: Build and inspect the crate archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(python3 -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["package"]["version"])')
+          cargo package --locked
+          mkdir -p dist
+          cp "target/package/llattice-${version}.crate" dist/
+          cargo package --locked --list >dist/PACKAGE-CONTENTS.txt
+          (cd dist && sha256sum "llattice-${version}.crate" PACKAGE-CONTENTS.txt >SHA256SUMS)
+          (cd dist && sha256sum --check SHA256SUMS)
+      - uses: actions/upload-artifact@v7
+        with:
+          name: llattice-crate
+          path: dist
+          if-no-files-found: error
+
+  github-release:
+    name: Publish checksummed GitHub release
+    needs: package
+    if: github.event_name == 'workflow_dispatch' && github.ref_type == 'tag' && inputs.registry == 'github-release'
+    runs-on: ubuntu-24.04
+    environment: github-release
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@v7
+        with:
+          name: llattice-crate
+          path: dist
+      - name: Verify and publish immutable assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd dist && sha256sum --check SHA256SUMS)
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "GitHub release $GITHUB_REF_NAME already exists; refusing to overwrite it" >&2
+            exit 1
+          fi
+          version=${GITHUB_REF_NAME#v}
+          prerelease=()
+          if [[ "$version" == *-* ]]; then prerelease=(--prerelease); fi
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --verify-tag \
+            --title "llattice $version" \
+            --generate-notes \
+            "${prerelease[@]}"
+
+  crates-io:
+    name: Publish crates.io
+    needs: package
+    if: github.event_name == 'workflow_dispatch' && github.ref_type == 'tag' && inputs.registry == 'crates-io'
+    runs-on: ubuntu-24.04
+    environment: crates-io
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with: { persist-credentials: false }
+      - uses: dtolnay/rust-toolchain@1.95
+      - name: Reject an already-published version
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(python3 -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["package"]["version"])')
+          status=$(curl --retry 4 --retry-all-errors --silent --show-error \
+            --user-agent 'llattice-release/1.0 (https://github.com/vinary-tree/llattice)' \
+            --output "$RUNNER_TEMP/crates-version.json" --write-out '%{http_code}' \
+            "https://crates.io/api/v1/crates/llattice/$version")
+          case "$status" in
+            404) ;;
+            200)
+              echo "llattice $version is already public; refusing to republish" >&2
+              exit 1
+              ;;
+            *)
+              echo "crates.io version preflight returned HTTP $status" >&2
+              exit 1
+              ;;
+          esac
+      - name: Authenticate with crates.io
+        id: crates-io-auth
+        uses: rust-lang/crates-io-auth-action@v1
+      - name: Publish the exact tagged crate
+        run: cargo publish --locked
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.crates-io-auth.outputs.token }}

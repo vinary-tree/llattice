@@ -7,6 +7,15 @@ All notable changes to **`llattice`** are documented here. The format follows
 ## [Unreleased]
 
 ### Added
+- A fail-closed, exact-tag release workflow with independent source, lattice-law,
+  Rocq-proof, crate-package, GitHub-release, and crates.io publication jobs.
+- Keyless crates.io Trusted Publishing through GitHub Actions OpenID Connect,
+  with protected environments, an already-published-version preflight, and
+  automatic revocation of the temporary Cargo token.
+- A complete release runbook and rendered trust-flow diagram covering one-time
+  registry setup, immutable-source discipline, SHA-256 package evidence,
+  destination-isolated publication, failure recovery, and fresh-consumer
+  read-back.
 - Comprehensive `docs/` tree: theory (order theory, lattices, lawfulness proofs, the semiring bridge), design
   (architecture, the orphan rule, per-impl semantics, two ADRs), guides (quickstart, implementing `Lattice`, a
   CRDT cookbook, fixpoints & analysis), engineering (testing, performance, security), a glossary, and a diagram

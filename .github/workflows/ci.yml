@@ -26,6 +26,8 @@ jobs:
       # proofs themselves.
       - name: Lattice invariant registry
         run: python3 scripts/check-lattice-invariants.py
+      - name: Release-ref authority
+        run: python3 scripts/check-release-ref.py --self-test
 
   proofs:
     name: Lattice-law proofs

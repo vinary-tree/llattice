@@ -67,6 +67,8 @@ Operational concerns.
   form, the `Vec`-vs-`HashSet` rule.
 - [**03 — Security**](engineering/03-security.md) — threat model (`NaN` poisoning, complexity DoS) and the
   no-`unsafe`/no-panic guarantees.
+- [**04 — Releasing**](engineering/04-releasing.md) — immutable tags, independent verification, protected
+  environments, crates.io OIDC trusted publishing, and public-byte read-back.
 
 ## Reference
 
@@ -88,7 +90,7 @@ docs/
 │   └── figures/
 ├── guides/                    ← 01 quickstart · 02 implementing · 03 CRDTs · 04 fixpoints
 │   └── figures/
-├── engineering/               ← 01 testing · 02 performance · 03 security
+├── engineering/               ← 01 testing · 02 performance · 03 security · 04 releasing
 │   └── figures/
 └── diagrams/                  ← shared powerset Hasse, render Makefile, palette, this catalog
 ```

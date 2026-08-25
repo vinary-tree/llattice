@@ -1,0 +1,40 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName DejaVu Sans
+skinparam ArrowColor #334155
+skinparam activity {
+  BackgroundColor #DBEAFE
+  BorderColor #2563EB
+  DiamondBackgroundColor #FEF3C7
+  DiamondBorderColor #D97706
+  StartColor #059669
+  EndColor #059669
+}
+
+start
+:Operator freezes Cargo version,
+changelog, commit, and exact tag; <<source>>
+:validate-only dispatch; <<control>>
+fork
+  :Format, Clippy, tests,
+  doctests, invariant registry; <<verification>>
+fork again
+  :Build mechanized
+  Rocq proofs; <<proof>>
+end fork
+:Build crate archive,
+contents manifest, SHA-256 evidence; <<artifact>>
+if (Selected destination?) then (GitHub release)
+  :Protected github-release environment; <<authorization>>
+  :Publish immutable checksummed assets; <<registry>>
+elseif (crates.io)
+  :Protected crates-io environment; <<authorization>>
+  :GitHub OIDC proof -> temporary Cargo token; <<identity>>
+  :Publish unused version and revoke token; <<registry>>
+else (validate-only)
+  :Retain workflow artifact only; <<evidence>>
+endif
+:Resolve public bytes in a fresh consumer; <<read-back>>
+stop
+@enduml
