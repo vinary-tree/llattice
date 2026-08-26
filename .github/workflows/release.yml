@@ -61,7 +61,8 @@ jobs:
     name: Mechanized lattice laws
     needs: contract
     runs-on: ubuntu-24.04
-    container: coqorg/coq:9.1
+    # Keep release proofs byte-for-byte aligned with CI's Rocq environment.
+    container: rocq/rocq-prover:9.1.1@sha256:b85a80a11bb65c7c843f91c7cbcce282f22ee397c9ca42f123d568ab6cef68b0
     steps:
       - uses: actions/checkout@v6
         with: { persist-credentials: false }

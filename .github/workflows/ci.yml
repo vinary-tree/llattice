@@ -32,7 +32,10 @@ jobs:
   proofs:
     name: Lattice-law proofs
     runs-on: ubuntu-latest
-    container: coqorg/coq:9.1
+    # Rocq >= 9 is published under rocq/rocq-prover, not the legacy
+    # coqorg/coq namespace. Pin the exact 9.1.1 amd64 manifest so a moved tag
+    # cannot silently change the proof environment.
+    container: rocq/rocq-prover:9.1.1@sha256:b85a80a11bb65c7c843f91c7cbcce282f22ee397c9ca42f123d568ab6cef68b0
     steps:
       - uses: actions/checkout@v4
       - name: Reject unchecked proof escapes
