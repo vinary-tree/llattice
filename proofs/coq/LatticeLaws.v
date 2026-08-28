@@ -18,8 +18,7 @@
     Registry: proofs/doc/lattice-invariants.tsv, LATT-LAW-1..5.
 *)
 
-Require Import Coq.ZArith.ZArith.
-Require Import Coq.Bool.Bool.
+From Stdlib Require Import ZArith.ZArith Bool.Bool.
 
 Open Scope Z_scope.
 

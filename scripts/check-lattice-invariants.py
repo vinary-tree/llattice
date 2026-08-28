@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the llattice lattice invariant registry (proofs/doc/abi-invariants.tsv).
+"""Validate the llattice invariant registry (proofs/doc/lattice-invariants.tsv).
 
 The registry is the traceability spine of the lattice-law verification
 program: every invariant row names its formal home (spec_path/spec_name), its

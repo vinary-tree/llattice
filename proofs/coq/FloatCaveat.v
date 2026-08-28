@@ -17,7 +17,7 @@
     Registry: proofs/doc/lattice-invariants.tsv, LATT-FLOAT-1.
 *)
 
-Require Import Coq.ZArith.ZArith.
+From Stdlib Require Import ZArith.ZArith.
 
 Open Scope Z_scope.
 

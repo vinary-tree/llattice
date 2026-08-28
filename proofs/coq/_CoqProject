@@ -5,3 +5,5 @@
 LatticeLaws.v
 # Why the f32/f64 impls are lawful only NaN-free
 FloatCaveat.v
+# Layered join/meet traits, in-place join, bottom, option lift, and countermodels
+LayeredTraits.v
