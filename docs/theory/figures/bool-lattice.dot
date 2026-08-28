@@ -1,6 +1,5 @@
-// The two-element Boolean lattice 𝟮 = ({false, true}, ≤).  join = ∨ (OR), meet = ∧ (AND).
-// Render:  dot -Tsvg bool-lattice.dot -o bool-lattice.svg     Tool: Graphviz (graph_layout).
 digraph bool_lattice {
+    // Two-element Boolean lattice: join = OR and meet = AND.
     bgcolor = "white";
     rankdir = BT;
     node [shape=box, style="rounded,filled", fontname="DejaVu Sans",

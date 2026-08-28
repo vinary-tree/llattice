@@ -11,9 +11,9 @@
     (`a <= b  <->  join a b = b`) -- obligation #26, the formal home of
     LATT-LAW-1..5.
 
-    The NaN caveat of the `f32`/`f64` impls is treated separately in
-    [[FloatCaveat]] (LATT-FLOAT-1): those impls are lawful only on the NaN-free
-    subset.
+    The exclusion of raw `f32`/`f64` is justified separately in
+    [[FloatCaveat]] (LATT-FLOAT-1): a max/min candidate is lawful only on the
+    NaN-free subset, which the raw Rust types cannot enforce.
 
     Registry: proofs/doc/lattice-invariants.tsv, LATT-LAW-1..5.
 *)

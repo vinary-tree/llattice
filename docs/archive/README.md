@@ -24,6 +24,13 @@ labels through bundled JLaTeXMath. The figures were therefore re-authored in Pla
 | `guides/figures/crdt-convergence.png` | PNG rendered from the Mermaid source | `docs/guides/figures/crdt-convergence.svg` (PlantUML) |
 | `diagrams/mermaid.json` | Mermaid-CLI theme/config passed to `mmdc -c` | *(none — Mermaid is no longer invoked)* |
 | `diagrams/powerset-hasse.puml` | A second, redundant PlantUML source for the powerset Hasse | `docs/diagrams/powerset-hasse.dot` (Graphviz remains canonical for ranked Hasse layouts) |
+| `v0.1/design/figures/vec-join-flow.*` | Flow for the removed, left-biased raw `Vec` join | Formal sequence counterexample and `HashSet`/canonical-wrapper guidance in the live v0.2 docs |
+| `v0.1/design/figures/vec-meet-flow.*` | Flow for the removed, left-biased raw `Vec` meet | Lawful `MeetSemilattice` implementations in the live v0.2 docs |
+
+The versioned `v0.1/` assets were archived on 2026-08-28 when ADR-0003
+removed conditionally lawful raw sequence implementations. They remain useful
+for reconstructing the 0.1 behavior but must not be read as current API
+semantics.
 
 ## Historical note — why Mermaid used PNG
 

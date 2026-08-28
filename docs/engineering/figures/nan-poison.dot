@@ -1,9 +1,5 @@
-// Two failure modes of the f32/f64 lattice impl in the presence of IEEE-754 NaN.
-//   (1) join/meet SILENTLY DROP NaN:  f64::max(NaN, x) == x  → the NaN is swallowed (data loss).
-//   (2) NaN is ≤-INCOMPARABLE:  NaN.partial_cmp(&x) == None  → the order a ⊑ b is undefined,
-//       so any order-based invariant (sorted merge, monotonicity check) silently breaks.
-// Render:  dot -Tsvg nan-poison.dot -o nan-poison.svg     Tool: Graphviz (graph_layout).
 digraph nan_poison {
+    // Raw floats are excluded because max/min can drop NaN and NaN is incomparable.
     bgcolor = "white";
     rankdir = LR;
     ranksep = 0.6;
@@ -12,7 +8,7 @@ digraph nan_poison {
     edge [color="#6B7280", penwidth=1.1, fontname="DejaVu Sans", fontsize=10, fontcolor="#6B7280"];
 
     subgraph cluster_drop {
-        label = "Failure 1 — join silently drops NaN"; fontname="DejaVu Sans"; fontsize=11;
+        label = "Exclusion 1 — candidate join drops NaN"; fontname="DejaVu Sans"; fontsize=11;
         color="#FCD34D"; style="rounded"; fontcolor="#B45309";
         stream [label="fold ⊔ over [3.0, NaN, 5.0]", fillcolor="#DBEAFE"];
         nan1   [label="NaN", fillcolor="#FCA5A5", color="#B91C1C"];
@@ -22,7 +18,7 @@ digraph nan_poison {
     }
 
     subgraph cluster_order {
-        label = "Failure 2 — NaN breaks the order ⊑"; fontname="DejaVu Sans"; fontsize=11;
+        label = "Exclusion 2 — NaN breaks the order ⊑"; fontname="DejaVu Sans"; fontsize=11;
         color="#FCA5A5"; style="rounded"; fontcolor="#B91C1C";
         nan2 [label="NaN", fillcolor="#FCA5A5", color="#B91C1C"];
         cmp  [label="NaN ≤ 3.0 ?", fillcolor="#FEE2E2"];

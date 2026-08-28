@@ -1,127 +1,128 @@
-# Fixpoints and Analysis
+# Fixpoints and monotone analysis
 
-> **Goal.** Use the *order* of a lattice — not just its merge — to compute **monotone fixed points**: the
-> engine behind dataflow analysis, abstract interpretation, and Datalog. Where [the CRDT cookbook](03-crdt-cookbook.md)
-> used $`\sqcup`$ to *combine* states, here we iterate a monotone map *up* the lattice until it stops moving.
+## 1. The pattern
 
----
+A monotone analysis repeatedly applies transfer functions and accumulates
+results with join until no value changes. If $`F`$ is monotone and the domain
+has finite ascending chains, iteration from bottom reaches the least fixed
+point.
 
-## 1. Monotone maps and ascending chains
+![Ascending iteration to a fixed point](figures/fixpoint-ascent.svg)
 
-A map $`f : L \to L`$ on a lattice is **monotone** if $`a \sqsubseteq b \implies f(a) \sqsubseteq f(b)`$ — it never undoes order. Start at $`\bot`$
-and iterate. Because $`\bot \sqsubseteq f(\bot)`$, monotonicity propagates the inequality up the whole chain:
+`join_assign` exposes exactly the event a worklist needs: enqueue dependents
+only when their input state changes.
 
-```math
-\bot \sqsubseteq f(\bot) \sqsubseteq f^2(\bot) \sqsubseteq f^3(\bot) \sqsubseteq \cdots
-```
-
-On a lattice with no infinite ascending chains (e.g. any finite lattice, or `HashSet` over a finite domain), the
-chain **stabilises**: some $`f^n(\bot) = f^{n+1}(\bot)`$. That stable value is a fixed point.
-
-![The Kleene ascending chain stabilising at the least fixed point](figures/fixpoint-ascent.svg)
-
----
-
-## 2. The fixed-point theorems
-
-Two classical results guarantee the fixed point exists and that iteration finds the *least* one.
-
-- **Knaster–Tarski (1955).** Every monotone map on a **complete lattice** has a least fixed point
-  $`\operatorname{lfp} f = \bigsqcap \{\, x : f(x) \sqsubseteq x \,\}`$, and the set of all fixed points is itself a complete lattice. Completeness is
-  what guarantees existence — which is why we care that `HashSet` and finite lattices are complete
-  ([theory/02 §4](../theory/02-semilattices-lattices.md)).
-- **Kleene iteration.** When `f` is additionally **continuous** (preserves suprema of ascending chains), the
-  least fixed point is reached by iterating from $`\bot`$: $`\operatorname{lfp} f = \bigsqcup_n f^n(\bot)`$. On finite lattices, "iterate until it
-  stops changing" computes it exactly.
-
----
-
-## 3. A worked fixpoint: graph reachability
-
-Reachability is the canonical monotone fixpoint. The reachable set grows monotonically; iterate `join` until
-stable. The lattice is `HashSet<u32>` (complete over the finite node set), the bottom is `{}`:
+## 2. A stack-safe worklist
 
 ```rust
-use llattice::Lattice;
-use std::collections::HashSet;
+use llattice::{Bottom, JoinSemilattice};
+use std::collections::{HashSet, VecDeque};
 
-// Directed graph: 0 → 1 → 2, with a self-loop 2 → 2.
-const EDGES: [(u32, u32); 3] = [(0, 1), (1, 2), (2, 2)];
+fn reachable(edges: &[Vec<usize>], entry: usize) -> HashSet<usize> {
+    let mut reached: HashSet<usize> = Bottom::bottom();
+    let mut pending = VecDeque::from([entry]);
 
-/// One monotone step: keep everything reached, add the targets of fired edges, keep the start node 0.
-fn step(reached: &HashSet<u32>) -> HashSet<u32> {
-    let mut next = reached.clone();
-    for &(src, dst) in &EDGES {
-        if reached.contains(&src) {
-            next = next.join(&[dst].into_iter().collect()); // ⊔ pulls dst into the set
+    while let Some(node) = pending.pop_front() {
+        let singleton = [node].into_iter().collect();
+        if !reached.join_assign(&singleton) {
+            continue;
+        }
+        for &successor in &edges[node] {
+            pending.push_back(successor);
         }
     }
-    next.join(&[0].into_iter().collect()) // seed: 0 is always reachable
+    reached
 }
 
-// Kleene iteration from ⊥ = {} to the least fixed point:
-let mut x: HashSet<u32> = HashSet::new();
-loop {
-    let y = step(&x);
-    if y == x { break; } // reached the fixed point f(x) = x
-    x = y;               // x ⊑ y, climb one rung
-}
-assert_eq!(x, [0, 1, 2].into_iter().collect());
+let graph = vec![vec![1, 2], vec![3], vec![3], vec![]];
+assert_eq!(reachable(&graph, 0), [0, 1, 2, 3].into_iter().collect());
 ```
 
-The loop realises exactly the ascending chain $`\{\} \sqsubseteq \{0\} \sqsubseteq \{0,1\} \sqsubseteq \{0,1,2\} = \operatorname{lfp}`$.
+The native stack depth is constant. Graph depth lives in the heap-backed
+`VecDeque`, and facts live in the heap-backed `HashSet`. For maximum throughput,
+a production reachability engine would insert a node directly rather than
+construct a singleton; the example keeps the generic join pattern visible.
 
----
+## 3. Generic chaotic iteration
 
-## 4. Where this shows up
+```rust
+use llattice::JoinSemilattice;
+use std::collections::VecDeque;
 
-The same shape powers several analyses; `llattice` supplies the uniform $`\sqcup`$ (to accumulate facts) and the order
-(to detect the fixed point).
+fn propagate<T, F>(states: &mut [T], successors: &[Vec<usize>], mut transfer: F)
+where
+    T: JoinSemilattice,
+    F: FnMut(usize, &T) -> T,
+{
+    let mut pending: VecDeque<usize> = (0..states.len()).collect();
+    while let Some(source) = pending.pop_front() {
+        let contribution = transfer(source, &states[source]);
+        for &target in &successors[source] {
+            if states[target].join_assign(&contribution) {
+                pending.push_back(target);
+            }
+        }
+    }
+}
 
-- **Dataflow analysis (Kildall, 1973).** Each program point carries a lattice value (live variables, available
-  expressions, constant ranges). The transfer functions are monotone; the analysis is the meet-/join-over-all-paths
-  fixed point. `join` merges information flowing into a join point.
-- **Abstract interpretation (Cousot & Cousot, 1977).** Concrete semantics are over-approximated in a lattice of
-  *abstract values* connected to the concrete domain by a Galois connection. Soundness is monotonicity; the
-  analysis result is $`\operatorname{lfp}`$ of the abstract transfer function. For lattices of *infinite* height, **widening**
-  $`\nabla`$ accelerates (and forces) convergence where plain iteration would not terminate (Cousot & Cousot, 1979).
-- **Datalog / logic programming.** A set of monotone rules defines an operator $`T_P`$ on the lattice of
-  derivable facts; the program's meaning is $`\operatorname{lfp} T_P`$, computed by naïve/semi-naïve iteration — again "join in
-  the newly-derived facts until nothing new appears".
+let mut states = vec![0_u32, 0, 0];
+let successors = vec![vec![1], vec![2], vec![]];
+propagate(&mut states, &successors, |node, state| *state + node as u32 + 1);
+assert_eq!(states, vec![0, 1, 3]);
+```
 
-In each case the discipline is the same: model the state as a lattice, make the step monotone, iterate from $`\bot`$
-to the least fixed point.
+The example's acyclic graph terminates. In general, termination additionally
+requires a finite-height domain, widening, or another explicit convergence
+argument. Semilattice laws guarantee deterministic joins, not termination of an
+arbitrary transfer function.
 
----
+## 4. Parallel worklists
 
-## 5. Practical notes
+Partitioned propagation may process independent queue items concurrently when
+the state type and scheduler support it:
 
-- **Termination.** Iteration terminates only if the lattice has no infinite ascending chains *along the path the
-  step takes*. `HashSet` over a bounded universe is fine; an unbounded `Vec`/`HashSet` that can grow forever is
-  not — bound the domain or apply widening.
-- **Least vs. greatest.** Iterating up from $`\bot`$ gives the **least** fixed point (the smallest consistent
-  solution — e.g. *minimal* reachable set). Dually, iterating down from $`\top`$ with `meet` gives the greatest fixed
-  point (used for safety/coinductive properties). `llattice` gives you both directions via `join`/`meet`.
-- **Monotonicity is the proof obligation.** If your step is not monotone, none of the guarantees hold — verify
-  it the same way you verify a `Lattice` impl ([engineering/01](../engineering/01-testing.md)).
+```rust
+use llattice::JoinSemilattice;
 
-→ Back to the [guides index](../README.md#guides), or dig into the theory at
-[theory/02 — lattices](../theory/02-semilattices-lattices.md).
+fn parallel_domain<T: JoinSemilattice + Send + Sync + 'static>(value: T) {
+    # let _ = value;
+}
 
----
+parallel_domain(0_u64);
+```
 
-## References
+The engine must make concurrent writes race-free—through ownership partitions,
+locks, atomics, or deterministic message passing. Algebraic commutativity makes
+the final value independent of merge order; it does not make unsynchronized
+memory access safe.
 
-1. Knaster, B. (1928). Un théorème sur les fonctions d'ensembles. *Annales de la Société Polonaise de
-   Mathématique*, 6, 133–134 — with Tarski, the source of the Knaster–Tarski fixed-point theorem (no DOI available).
-2. Tarski, A. (1955). A lattice-theoretical fixpoint theorem and its applications. *Pacific Journal of
-   Mathematics*, 5(2), 285–309. <https://doi.org/10.2140/pjm.1955.5.285>.
-3. Kleene, S. C. (1952). *Introduction to Metamathematics*. North-Holland — the least-fixed-point-by-iteration
-   construction underlying "Kleene iteration" (no DOI available).
-4. Cousot, P., & Cousot, R. (1977). Abstract interpretation: a unified lattice model for static analysis of
-   programs by construction or approximation of fixpoints. In *POPL '77*, 238–252.
-   <https://doi.org/10.1145/512950.512973>.
-5. Cousot, P., & Cousot, R. (1979). Systematic design of program analysis frameworks. In *POPL '79*, 269–282.
-   <https://doi.org/10.1145/567752.567778> — Galois connections and widening.
-6. Kildall, G. A. (1973). A unified approach to global program optimization. In *POPL '73*, 194–206.
-   <https://doi.org/10.1145/512927.512945> — dataflow analysis as lattice fixpoint iteration.
+## 5. When a pushdown automaton is appropriate
+
+Ordinary dataflow over a graph needs a queue, not a pushdown stack. A
+specialized iterative pushdown automaton becomes appropriate when transfer
+state includes unbounded nesting, such as balanced delimiters, call/return
+matching, context-free reachability, or parser configurations.
+
+For such a substitution:
+
+1. define the source transition semantics;
+2. define the PDA state, stack alphabet, and accepting condition;
+3. prove language or reachability equivalence;
+4. prove every transition's explicit-stack and auxiliary-space bound;
+5. run depth-stress and RSS-capped performance tests.
+
+PraTTaIL's future GrammarCore front-end and nested lling-llang analyses are
+candidate PDA consumers. `llattice` remains the algebra of their abstract
+states, not the parser machine itself.
+
+## 6. Theory
+
+For complete lattices, Tarski's theorem gives a complete lattice of fixed points
+for a monotone endomap. Kleene iteration identifies the least fixed point under
+continuity assumptions. Runtime domains frequently use finite height or
+widening rather than representing a mathematically complete carrier.
+
+- Tarski, A. “A Lattice-Theoretical Fixpoint Theorem and Its Applications.”
+  [https://doi.org/10.2140/pjm.1955.5.285](https://doi.org/10.2140/pjm.1955.5.285)
+- Cousot, P., and Cousot, R. “Abstract Interpretation.” POPL 1977.
+  [https://doi.org/10.1145/512950.512973](https://doi.org/10.1145/512950.512973)

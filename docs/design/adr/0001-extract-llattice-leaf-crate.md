@@ -1,6 +1,6 @@
 # ADR-0001 — Extract `Lattice` into a zero-dependency leaf crate
 
-- **Status:** Accepted (realised by `llattice` 0.1.0)
+- **Status:** Accepted for 0.1; trait shape superseded by [ADR-0003](0003-layered-lawful-traits.md)
 - **Date:** 2026-06
 - **Deciders:** `vinary-tree` maintainers
 - **Related:** [design/01 — architecture](../01-architecture.md), [design/02 — orphan rule](../02-orphan-rule.md)
@@ -25,6 +25,11 @@ detail in [design/02](../02-orphan-rule.md)).
 
 **Extract the `Lattice` trait and all its `std`-type impls into a new, standalone crate `llattice` with
 zero dependencies, and have every family member depend on it.**
+
+> **Historical scope.** The concrete one-trait API below records the 0.1
+> decision faithfully. Version 0.2 retains the shared zero-dependency leaf but
+> replaces the monolithic trait and conditionally lawful instances according to
+> ADR-0003.
 
 Concretely:
 
@@ -51,8 +56,8 @@ Concretely:
 **Negative / costs**
 
 - **An extra crate to publish and version.** Mitigated by its tiny, stable surface (one trait).
-- **The `Send + Sync` supertrait excludes non-thread-safe types** (e.g. `Rc`-based). Accepted: such types are
-  not the merge-across-workers values the trait targets (see [design/01 §2](../01-architecture.md#2-why-the-supertrait-bound-is-clone--send--sync)).
+- **The 0.1 `Send + Sync` supertrait excluded non-thread-safe types.** This cost
+  was later removed by ADR-0003; parallel consumers now own those bounds.
 - **Semiring machinery must stay out** to preserve the leaf property — which is why the semiring bridge lives in
   `lling-llang` ([ADR-0002](0002-semiring-bridge-lives-in-lling-llang.md)).
 

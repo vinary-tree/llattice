@@ -1,13 +1,12 @@
 @startuml lattice-class
-' Class / realization diagram: the `Lattice` trait and its built-in implementors.
-' Floats and Vec<T> carry lawfulness caveats (red) — see the lawfulness matrix (theory/03).
-' Render:  plantuml -tsvg lattice-class.puml     Tool: PlantUML (uml_architecture, class diagram).
+' Layered llattice v2 traits, lawful built-ins, and consumer-side concurrency.
+' Render: plantuml -tsvg lattice-class.puml
 
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName "DejaVu Sans"
-skinparam ArrowColor #6B7280
-skinparam roundcorner 6
+skinparam ArrowColor #475569
+skinparam roundcorner 7
 skinparam interface {
   BackgroundColor #C4B5FD
   BorderColor #5B21B6
@@ -19,57 +18,76 @@ skinparam class {
   FontColor #111827
 }
 skinparam note {
-  BackgroundColor #FEE2E2
-  BorderColor #B91C1C
+  BackgroundColor #FEF3C7
+  BorderColor #B45309
 }
 
-interface "Lattice" as Lattice <<trait>> {
-  Clone + Send + Sync
+interface "JoinSemilattice" as Join <<trait>> {
+  Clone + PartialEq
   --
-  + join(other: &Self) : Self
-  + meet(other: &Self) : Self
+  + join_assign(other: &Self): bool
+  + join(other: &Self): Self
+  + leq(other: &Self): bool
 }
 
-class "Integers" as Integers {
-  u8..u128, usize, i8..i128, isize
-  join = max,  meet = min
-}
-class "Floats" as Floats #FCA5A5;line:B91C1C {
-  f32, f64
-  join = max,  meet = min
-}
-class "Bool" as Bool {
-  bool
-  join = ∨ (OR),  meet = ∧ (AND)
-}
-class "OptionT" as OptionT {
-  Option of (T: Lattice)
-  None = ⊥ (fresh bottom)
-}
-class "HashSetT" as HashSetT {
-  HashSet of (T: Eq + Hash)
-  join = ∪,  meet = ∩
-}
-class "VecT" as VecT #FCA5A5;line:B91C1C {
-  Vec of (T: Eq)
-  join = concat+dedup,  meet = ∩
+interface "MeetSemilattice" as Meet <<trait>> {
+  Clone + PartialEq
+  --
+  + meet(other: &Self): Self
 }
 
-Integers ..|> Lattice : impl
-Floats   ..|> Lattice : impl
-Bool     ..|> Lattice : impl
-OptionT  ..|> Lattice : impl
-HashSetT ..|> Lattice : impl
-VecT     ..|> Lattice : impl
+interface "Lattice" as Lattice <<marker>>
+interface "Bottom" as Bottom <<trait>> {
+  + bottom(): Self
+}
 
-note bottom of Floats
-  a lattice only on the NaN-free
-  extended reals <latex>[-\infty, +\infty]</latex>
+Join <|-- Lattice
+Meet <|-- Lattice
+Join <|-- Bottom
+
+class "Integers" as Integers #86EFAC {
+  join = max
+  meet = min
+  bottom = MIN
+}
+class "bool" as Bool #86EFAC {
+  join = OR
+  meet = AND
+  bottom = false
+}
+class "Option<T>" as OptionT #BFDBFE {
+  capability-preserving lift
+  bottom = None
+}
+class "HashSet<T, S>" as HashSetT #BFDBFE {
+  join = union
+  meet = intersection
+  bottom when S: Default
+}
+
+Integers ..|> Lattice : lawful
+Integers ..|> Bottom
+Bool ..|> Lattice : lawful
+Bool ..|> Bottom
+OptionT ..|> Lattice : when T: Lattice
+OptionT ..|> Bottom : when T: Join
+HashSetT ..|> Lattice : lawful
+HashSetT ..|> Bottom : when S: Default
+
+class "Parallel consumer" as Parallel #FCD34D {
+  adds Send + Sync
+  at scheduling boundary
+}
+Parallel ..> Join : constrains T
+
+note right of Lattice
+  explicit marker:
+  both absorption laws required
 end note
 
-note bottom of VecT
-  join-semilattice up to content-equality;
-  absorption fails on raw <latex>\mathtt{Vec}</latex> values
+note bottom of HashSetT
+  iterative heap-backed work;
+  native-stack depth is independent of input size
 end note
 
 @enduml

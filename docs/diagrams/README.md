@@ -13,7 +13,7 @@ illustration*, not one tool for everything.
 
 | Source | Catalog tool (domain) | Renders to | Why this tool |
 |--------|-----------------------|-----------|---------------|
-| `*.dot` | **Graphviz** `dot` (`graph_layout`) | `.svg` | Ranked layouts are purpose-built for Hasse/order diagrams and reliable branching flowcharts; native-text SVG renders everywhere. |
+| `*.dot` | **Graphviz** `dot` (`graph_layout`) | `.svg` | Ranked layouts are purpose-built for Hasse/order diagrams and reliable branching flowcharts; the Cairo backend emits portable, DTD-free SVG. |
 | `*.d2` | **D2** (`uml_architecture`, `elk` layout) | `.svg` | Containers + labelled edges + styling for taxonomy, dependency, and concept-mapping diagrams. |
 | `*.puml` | **PlantUML** (`uml_architecture`) | `.svg` | Class and sequence diagrams. Byte-reproducible SVG, and `<latex>…</latex>` labels are typeset by bundled JLaTeXMath into embedded vector paths — so figure maths is real typeset maths, not unicode literals (guideline `diagrams-plantuml-latex`). Preferred over Mermaid for every diagram type both support (guideline `diagrams-prefer-plantuml`). |
 | `*.tex` | **TikZ/PGF** (`diagram_language`) → `dvisvgm` | `.svg` | Publication-grade mathematical typography for the $`M_3`$/$`N_5`$ figures. |
@@ -33,38 +33,37 @@ Each illustration, its source, its tool, and its diagram type. All figures rende
 
 | # | Figure | Source | Tool | Type |
 |---|--------|--------|------|------|
-| 1 | Powerset Hasse of $`\{1,2,3\}`$ | `powerset-hasse.dot` | Graphviz | ranked Hasse |
-| 2 | `bool` two-element lattice | `../theory/figures/bool-lattice.dot` | Graphviz | Hasse |
-| 3 | `Option<T>` lift | `../theory/figures/option-lift.dot` | Graphviz | Hasse + cluster |
-| 4 | lub/glb geometry | `../theory/figures/lub-glb-geometry.dot` | Graphviz | Hasse (highlighted) |
-| 5 | Lattice taxonomy | `../theory/figures/lattice-taxonomy.d2` | D2 | spec hierarchy |
-| 6 | $`\mathcal{P}(U) \cong 2^U`$ isomorphism | `../theory/figures/powerset-iso.d2` | D2 | mapping |
-| 7 | Semiring ↔ lattice bridge | `../theory/figures/semiring-bridge.d2` | D2 | concept map |
-| 8 | Lawfulness matrix | `../theory/figures/lawfulness-matrix.dot` | Graphviz | coloured table |
-| 9 | $`M_3`$ & $`N_5`$ forbidden sublattices | `../theory/figures/m3-n5.tex` | TikZ | publication Hasse |
-| 10 | `Lattice` trait + implementors | `../design/figures/lattice-class.puml` | PlantUML | class diagram |
-| 11 | Crate family / orphan diamond | `../design/figures/crate-family.d2` | D2 | dependency DAG |
-| 12 | `Option::join` flow | `../design/figures/option-join-flow.dot` | Graphviz | flowchart |
-| 13 | `Vec::join` flow | `../design/figures/vec-join-flow.dot` | Graphviz | flowchart |
-| 14 | `Vec::meet` flow | `../design/figures/vec-meet-flow.dot` | Graphviz | flowchart |
-| 15 | CRDT convergence | `../guides/figures/crdt-convergence.puml` | PlantUML | sequence |
-| 16 | Monotone fixpoint ascent | `../guides/figures/fixpoint-ascent.dot` | Graphviz | ascending chain |
-| 17 | `NaN` poisoning | `../engineering/figures/nan-poison.dot` | Graphviz | data-flow |
-| 18 | Product lattice (componentwise) | `../guides/figures/product-lattice.puml` | PlantUML | Hasse + LaTeX labels |
-| 19 | Law-audit pipeline | `../engineering/figures/law-audit-flow.dot` | Graphviz | flowchart |
+| 1 | Powerset Hasse of $`\{1,2,3\}`$ | [`powerset-hasse.dot`](powerset-hasse.dot) | Graphviz | ranked Hasse |
+| 2 | `bool` two-element lattice | [`bool-lattice.dot`](../theory/figures/bool-lattice.dot) | Graphviz | Hasse |
+| 3 | `Option<T>` lift | [`option-lift.dot`](../theory/figures/option-lift.dot) | Graphviz | Hasse + cluster |
+| 4 | lub/glb geometry | [`lub-glb-geometry.dot`](../theory/figures/lub-glb-geometry.dot) | Graphviz | Hasse (highlighted) |
+| 5 | Lattice taxonomy | [`lattice-taxonomy.d2`](../theory/figures/lattice-taxonomy.d2) | D2 | spec hierarchy |
+| 6 | $`\mathcal{P}(U) \cong 2^U`$ isomorphism | [`powerset-iso.d2`](../theory/figures/powerset-iso.d2) | D2 | mapping |
+| 7 | Semiring ↔ lattice bridge | [`semiring-bridge.d2`](../theory/figures/semiring-bridge.d2) | D2 | concept map |
+| 8 | V2 lawfulness and exclusion matrix | [`lawfulness-matrix.dot`](../theory/figures/lawfulness-matrix.dot) | Graphviz | coloured table |
+| 9 | $`M_3`$ & $`N_5`$ forbidden sublattices | [`m3-n5.tex`](../theory/figures/m3-n5.tex) | TikZ | publication Hasse |
+| 10 | Layered traits, lawful implementors, and parallel boundary | [`lattice-class.puml`](../design/figures/lattice-class.puml) | PlantUML | class diagram |
+| 11 | Crate family / orphan diamond | [`crate-family.d2`](../design/figures/crate-family.d2) | D2 | dependency DAG |
+| 12 | `Option::join` flow | [`option-join-flow.dot`](../design/figures/option-join-flow.dot) | Graphviz | flowchart |
+| 13 | CRDT convergence | [`crdt-convergence.puml`](../guides/figures/crdt-convergence.puml) | PlantUML | sequence |
+| 14 | Monotone fixpoint ascent | [`fixpoint-ascent.dot`](../guides/figures/fixpoint-ascent.dot) | Graphviz | ascending chain |
+| 15 | `NaN` exclusion counterexample | [`nan-poison.dot`](../engineering/figures/nan-poison.dot) | Graphviz | data-flow |
+| 16 | Product lattice (componentwise) | [`product-lattice.puml`](../guides/figures/product-lattice.puml) | PlantUML | Hasse + LaTeX labels |
+| 17 | Law-audit pipeline | [`law-audit-flow.dot`](../engineering/figures/law-audit-flow.dot) | Graphviz | flowchart |
+| 18 | Release trust flow | [`release-trust-flow.puml`](../engineering/figures/release-trust-flow.puml) | PlantUML | deployment sequence |
 
 ---
 
 ## 3. Shared colour palette
 
-Defined once, reused everywhere, so a colour means the same concept across all 19 figures.
+Defined once, reused everywhere, so a colour means the same concept across all figures.
 
 | Swatch | Hex | Concept |
 |--------|-----|---------|
-| slate | `#E5E7EB` | $`\bot`$ / bottom / neutral |
+| slate | `#E5E7EB` | $`\perp`$ / bottom / neutral |
 | light blue | `#DBEAFE` | atoms / first rank |
 | mid blue | `#BFDBFE` | mid rank / coatoms |
-| strong blue | `#93C5FD` | $`\top`$ / top / most-specific |
+| strong blue | `#93C5FD` | $`\mathrm{top}`$ / top / most-specific |
 | green | `#86EFAC` | **join** result / "holds" / the shared leaf |
 | amber | `#FCD34D` | **meet** result / "holds up to $`\cong`$" |
 | violet | `#C4B5FD` | operands / the trait / bridge |
@@ -89,7 +88,7 @@ make -C docs/diagrams list     # list discovered sources
 Per-engine invocation (what the Makefile runs):
 
 ```sh
-dot -Tsvg figure.dot -o figure.svg                    # Graphviz
+dot -Tsvg:cairo figure.dot -o figure.svg              # Graphviz, DTD-free SVG
 d2 --layout elk figure.d2 figure.svg                  # D2
 plantuml -tsvg figure.puml                            # PlantUML (writes figure.svg alongside the source)
 latex figure.tex && dvisvgm figure.dvi -o figure.svg  # TikZ via the DVI route

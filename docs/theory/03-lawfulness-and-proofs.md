@@ -1,246 +1,169 @@
-# Lawfulness and Proofs — which laws hold, and under which equality
+# Lawfulness, refinement, and proof evidence
 
-> **Prerequisite:** [02 — Semilattices and lattices](02-semilattices-lattices.md) for the four laws and the
-> connecting theorem. Symbols are in the [glossary](../GLOSSARY.md).
+## 1. What a trait bound promises
 
-The trait doc-comment once claimed the impls "satisfy the following properties" without qualification. That is
-**not true universally**: `f64` breaks idempotency in the presence of `NaN`, and `Vec` is only a
-join-semilattice *up to content-equality*. This document states the precise, **scoped** truth — a lawfulness
-matrix — and proves it impl by impl. It is the authoritative reference behind the corrected rustdoc.
+A `JoinSemilattice` bound means join is idempotent, commutative, and
+associative under the type's Rust `PartialEq`. It also means `join_assign`
+refines `join` with an exact change flag, and `leq` is the join-derived partial
+order. There are no hidden “except `NaN`” or “up to another equality” clauses.
 
----
+`MeetSemilattice` promises the dual three laws. `Lattice` promises both and the
+two absorption laws. `Bottom` promises a context-free join identity and least
+element.
 
-## 1. The lawfulness matrix at a glance
+## 2. Lawfulness matrix
 
-![Lawfulness matrix: each impl × each law, coloured holds / up-to-≅ / fails](figures/lawfulness-matrix.svg)
+| Rust domain | Join laws | Meet laws | Absorption | Bottom | Public capability |
+|---|---:|---:|---:|---:|---|
+| integer primitives | yes | yes | yes | `MIN` | all four traits |
+| `bool` | yes | yes | yes | `false` | all four traits |
+| `Option<T>` | when `T` has join | when `T` has meet | when `T: Lattice` | `None` | capability-preserving lift |
+| `HashSet<T, S>` | yes | yes | yes | when `S: Default` | join, meet, lattice; conditional bottom |
+| raw `f32`/`f64` | no: `NaN` | no: `NaN` | not applicable | not exposed | no implementation |
+| raw `Vec<T>` | no: order bias | no: order bias | not applicable | not exposed | no implementation |
 
-| | idempotent | commutative | associative | absorption | structure |
-|---|---|---|---|---|---|
-| `uN`/`iN`/`usize`/`isize` | ✅ | ✅ | ✅ | ✅ | bounded distributive **chain** |
-| `f32`/`f64` | ⚠️ fails at `NaN` | ✅ | ⚠️ NaN-free | ⚠️ NaN-free | chain on $`[-\infty, +\infty]`$, NaN-free only |
-| `bool` | ✅ | ✅ | ✅ | ✅ | two-element **Boolean** lattice |
-| `Option<T>` | ✅¹ | ✅¹ | ✅¹ | ✅¹ | **lift** $`T_\bot`$ (adds $`\bot = \text{None}`$) |
-| `HashSet<T>` | ✅ | ✅ | ✅ | ✅ | distributive, $`\bot = \{\}`$, no $`\top`$/$`\lnot`$ at runtime |
-| `Vec<T>` | ✅ (dedup) | ⚠️ up to content-eq | ⚠️ up to content-eq | ❌ fails on raw `Vec` | **join-semilattice** on the content quotient |
+![Lawful v2 capabilities and excluded raw candidates](figures/lawfulness-matrix.svg)
 
-Legend: ✅ holds under structural `==`; ⚠️ holds only up to content-equality or on the NaN-free subset;
-❌ fails. ¹ `Option<T>` inherits `T`'s status exactly — `Option<f64>` inherits the `NaN` defect.
+The generic rows are parametric. `Option<T>` cannot improve a broken inner
+algebra. The Rust bounds ensure only the available capability is lifted.
 
----
+## 3. The derived order proof
 
-## 2. Numeric types — `join = max`, `meet = min`
+Define:
 
-For any `Ord` numeric type the impl is `a.join(b)` $`= \max(a,b)`$, `a.meet(b)` $`= \min(a,b)`$, and $`\sqsubseteq`$ is $`\leq`$.
-
-**Claim.** Each numeric type is a bounded distributive lattice that is a *chain* (totally ordered).
-
-**Proof.** $`\leq`$ is a total order, so for any $`a, b`$ either $`a \leq b`$ or $`b \leq a`$; in the first case
-$`\max(a,b) = b`$ and $`\min(a,b) = a`$, in the second the reverse. The four laws follow from elementary properties
-of $`\max`$/$`\min`$ on a total order:
-
-- *Idempotency:* $`\max(a,a) = a`$, $`\min(a,a) = a`$.
-- *Commutativity:* $`\max`$/$`\min`$ are symmetric.
-- *Associativity:* $`\max(\max(a,b),c) = \max(a,b,c) = \max(a,\max(b,c))`$; dually for $`\min`$.
-- *Absorption:* $`\max(a, \min(a,b)) = a`$ since $`\min(a,b) \leq a`$; $`\min(a, \max(a,b)) = a`$ since $`a \leq \max(a,b)`$.
-
-Distributivity holds because every chain is distributive (a chain contains no incomparable pair, hence no $`M_3`$
-or $`N_5`$; see [02 §5](02-semilattices-lattices.md#5-distributivity-and-the-two-forbidden-sublattices)).
-Boundedness is `MIN`/`MAX`. ∎
-
-These impls are the gold standard: every law holds under the machine `==`, with no caveats.
-
----
-
-## 3. `bool` — the two-element Boolean lattice
-
-`true.join(b) = a || b`, `a.meet(b) = a && b`, $`\bot = \text{false}`$, $`\top = \text{true}`$.
-
-**Claim.** `bool` is the two-element Boolean lattice (the smallest non-degenerate Boolean algebra).
-
-**Proof.** `bool` is the chain $`\text{false} \leq \text{true}`$, so by §2 it is a bounded distributive lattice. It is
-**complemented**: $`\lnot \text{false} = \text{true}`$, $`\lnot \text{true} = \text{false}`$, and $`a \lor \lnot a = \text{true} = \top`$, $`a \land \lnot a = \text{false} = \bot`$. A bounded
-distributive complemented lattice is a Boolean algebra. ∎
-
-Every other Boolean impl is built from this one: $`\mathcal{P}(U) \cong 2^U`$ (a product of copies of `bool`), which is the
-unifying isomorphism of [02 §4](02-semilattices-lattices.md#atoms-coatoms-and-2u).
-
----
-
-## 4. `HashSet<T>` — union and intersection
-
-`a.join(b)` $`= a \cup b`$, `a.meet(b)` $`= a \cap b`$, $`\sqsubseteq`$ is $`\subseteq`$, $`\bot = \{\}`$.
-
-**Claim (mathematical).** The power set $`\mathcal{P}(U)`$ of any universe $`U`$, ordered by $`\subseteq`$, is a **complete atomic
-Boolean algebra**: atoms are singletons, complement is set-complement in $`U`$, arbitrary unions/intersections
-exist.
-
-**Proof.** Union and intersection are idempotent, commutative, and associative; absorption is
-$`a \cup (a \cap b) = a`$ and $`a \cap (a \cup b) = a`$, both immediate from $`a \cap b \subseteq a \subseteq a \cup b`$. Distributivity of $`\cap`$ over
-$`\cup`$ is the standard set identity. Completeness: $`\bigcup`$ and $`\bigcap`$ of any family of subsets are subsets. Complement
-$`\lnot S = U \setminus S`$ satisfies $`S \cup \lnot S = U = \top`$, $`S \cap \lnot S = \{\} = \bot`$. ∎
-
-**Claim (the runtime impl is a *fragment*).** The Rust type `HashSet<T>` models subsets of the *open,
-unbounded* universe of all `T` values. It therefore has $`\bot = \{\}`$ but **no $`\top`$** (no greatest finite set when
-`T` is infinite) and **no computable complement** ($`U \setminus S`$ is not finite). So at runtime `HashSet<T>` realises
-the **bounded-below distributive lattice** fragment — the join-semilattice with bottom plus a meet — *not* the
-full Boolean algebra. The Boolean/complete structure is recovered only once you fix a finite universe $`U`$.
-
-This distinction is carried into [design/03 — semantics](../design/03-semantics.md), which is careful never to
-promise a `HashSet` $`\top`$.
-
----
-
-## 5. `Option<T>` — the lift (bottom adjunction)
-
-```rust
-// from src/lib.rs
-fn join(&self, other: &Self) -> Self {
-    match (self, other) {
-        (Some(a), Some(b)) => Some(a.join(b)),
-        (Some(a), None)    => Some(a.clone()),
-        (None, Some(b))    => Some(b.clone()),
-        (None, None)       => None,
-    }
-}
-fn meet(&self, other: &Self) -> Self {
-    match (self, other) {
-        (Some(a), Some(b)) => Some(a.meet(b)),
-        _                  => None,
-    }
-}
+```math
+a \preceq b \quad:\Longleftrightarrow\quad a \vee b = b
 ```
 
-![Option<T> lifts T by adjoining None as a fresh bottom](figures/option-lift.svg)
+Idempotency proves reflexivity. Commutativity proves antisymmetry together with
+the two order hypotheses. Associativity proves transitivity. Rocq theorem
+`join_leq_is_partial_order` checks these derivations without axioms.
 
-![Control flow of Option::join — the four-way match](../design/figures/option-join-flow.svg)
+An optimized `leq` override must agree with this definition. The public law
+harness checks the bridge before checking reflexivity, transitivity, and
+antisymmetry over each supplied sample triple.
 
-**Claim.** `Option<T>` is the **lift** $`T_\bot`$: it adjoins a fresh least element `None` below an order-isomorphic
-copy of `T`. If `T` is a lattice then `Option<T>` is a lattice, with $`\bot = \text{None}`$, induced order
-$`\text{None} \sqsubseteq \text{Some}(\_)`$ and $`\text{Some}(a) \sqsubseteq \text{Some}(b) \iff a \sqsubseteq b`$, and (if `T` has a top) $`\top = \text{Some}(\top_T)`$.
+## 4. In-place refinement
 
-**Proof.** `None` is the identity for $`\sqcup`$ ($`\text{None} \sqcup x = x`$ by the match) and the annihilator for $`\sqcap`$
-($`\text{None} \sqcap x = \text{None}`$), which is exactly "a new bottom". On `Some(_)` both operations recurse:
-$`\text{Some}(a) \sqcup \text{Some}(b) = \text{Some}(a \sqcup b)`$, $`\text{Some}(a) \sqcap \text{Some}(b) = \text{Some}(a \sqcap b)`$. Each law lifts by case analysis on the
-match; we show absorption, the subtlest:
+Let $`u = a \vee b`$. The required result of `a.join_assign(b)` is:
 
-- $`\text{None} \sqcup (\text{None} \sqcap x) = \text{None} \sqcup \text{None} = \text{None}`$ ✓ and $`\text{Some}(a) \sqcup (\text{Some}(a) \sqcap \text{None}) = \text{Some}(a) \sqcup \text{None} = \text{Some}(a)`$ ✓.
-- $`\text{Some}(a) \sqcup (\text{Some}(a) \sqcap \text{Some}(b)) = \text{Some}(a) \sqcup \text{Some}(a \sqcap b) = \text{Some}(a \sqcup (a \sqcap b)) = \text{Some}(a)`$ by `T`'s absorption ✓.
-
-The remaining laws are analogous. ∎
-
-> **Inheritance caveat.** "If `T` is a lattice" is load-bearing: `Option<T>` is lawful *exactly to the extent
-> `T` is*. `Option<f64>` inherits the `NaN` defect of §6; `Option<Vec<U>>` inherits the content-equality
-> caveat of §7. The lift adds a clean bottom; it cannot repair the wrapped type.
-
----
-
-## 6. `f32` / `f64` — lawful only on the NaN-free extended reals
-
-`a.join(b) = a.max(b)`, `a.meet(b) = a.min(b)`. Rust's `f64::max`/`f64::min` implement the IEEE-754
-`maxNum`/`minNum` operations: **if exactly one argument is `NaN`, the other is returned**; if both are `NaN`,
-`NaN` is returned.
-
-**Claim (positive).** On the NaN-free extended reals $`[-\infty, +\infty]`$, `f32`/`f64` form a bounded lattice — in fact
-a **chain** — with $`\bot = -\infty`$, $`\top = +\infty`$. (Proof: identical to §2; the values are totally ordered.)
-
-**Claim (negative — the defect).** On the full set including `NaN`, the lattice laws fail:
-
-- **Idempotency fails under `==`.** `NaN.join(&NaN)` evaluates to `NaN` (both args `NaN`), but `NaN == NaN` is
-  `false`. So $`a \sqcup a = a`$ does **not** hold at $`a = \text{NaN}`$ *when equality is structural `==`*. This is the
-  decisive failure: a property test `a.join(&a) == a` returns `false` for `NaN`.
-- **The order breaks.** `NaN.partial_cmp(&x)` is `None` for every `x` — `NaN` is incomparable. So (`f64`, $`\leq`$) is
-  only a *partial* order, and the connecting theorem
-  ([02 §3](02-semilattices-lattices.md#3-the-orderoperation-bridge)) $`a \sqsubseteq b \iff a \sqcup b = b`$ has no content at
-  `NaN`.
-- **Silent data loss.** Because $`\max(\text{NaN}, x) = x`$, a fold of `[3.0, NaN, 5.0]` under $`\sqcup`$ returns `5.0` — the
-  `NaN` simply vanishes rather than poisoning or being rejected.
-
-![Two NaN failure modes: silent drop, and the broken order](../engineering/figures/nan-poison.svg)
-
-**Non-issue: signed zero.** `-0.0 == 0.0` is `true` and $`\max`$/$`\min`$ treat them as equal, so signed zero breaks
-nothing — mentioned only to forestall the question.
-
-**Practical rule.** Use the float impl only on values you have already excluded `NaN` from (validate at the
-boundary, or use an ordered-float newtype). [engineering/03 — security](../engineering/03-security.md) treats
-`NaN` as a correctness-poisoning input.
-
----
-
-## 7. `Vec<T>` — a join-semilattice on the content quotient
-
-```rust
-// from src/lib.rs
-fn join(&self, other: &Self) -> Self {        // concat + dedup, order-preserving, left-biased
-    let mut result = self.clone();
-    for item in other { if !result.contains(item) { result.push(item.clone()); } }
-    result
-}
-fn meet(&self, other: &Self) -> Self {        // intersection, in self's order (left-biased)
-    self.iter().filter(|x| other.contains(x)).cloned().collect()
-}
+```math
+\text{stored value} = u
+\qquad
+\text{returned flag} = (a \neq u)
 ```
 
-![Control flow of Vec::join (dedup) and Vec::meet (left-biased intersection)](../design/figures/vec-join-flow.svg)
+Rocq definitions `join_assign_model`, `join_assign_returns_join`, and
+`join_assign_changed_iff` establish this abstract contract. The executable
+harness clones the before-value, invokes `join_assign`, and independently
+checks both the stored result and flag.
 
-The temptation is to call this "the lattice of finite sequences". It is **not** a lattice on `Vec` *values*.
-Two things go wrong, and the documentation must state both.
+For `HashSet`, union never removes elements. Therefore the implementation may
+compare cardinalities before and after extension: the cardinality changes if
+and only if the set's structural value changes.
 
-**Defect 1 — commutativity holds only up to content-equality.** Define content-equality $`a \approx b`$ to mean "same
-set of elements". Then:
+## 5. Absorption is independent evidence
 
-```text
-[1,2].join(&[2,1]) = [1,2]      (2 and 1 already present)
-[2,1].join(&[1,2]) = [2,1]
-[1,2] ≈ [2,1]   but   [1,2] ≠ [2,1]   as Vec values
+Two lawful semilattice operations do not automatically form a lattice. Set
+both candidate operations to Boolean OR. They are each idempotent, commutative,
+and associative, but:
+
+```math
+\text{false} \mathbin{\mathrm{OR}}
+(\text{false} \mathbin{\mathrm{OR}} \text{true})
+= \text{true} \neq \text{false}
 ```
 
-So $`a \sqcup b = b \sqcup a`$ holds under $`\approx`$ but **fails** under structural `Vec::==` — `join` is *left-biased* in the
-ordering of its result. Associativity is likewise only an $`\approx`$-identity.
+Rocq theorem `two_semilattices_need_not_form_lattice` and Rust test
+`law_harness_rejects_nonabsorbing_operations` share this countermodel. This is
+why `Lattice` is an explicit marker rather than a blanket implementation.
 
-**Defect 2 — absorption is not a `Vec`-value law, and `meet` is not a true glb.** `meet` keeps the *left*
-operand's elements in the *left* operand's order, discarding the right operand's ordering entirely. Hence
-$`x \sqcap y`$ and $`y \sqcap x`$ can differ as `Vec` values even when their *contents* agree, so $`\sqcap`$ is commutative only up
-to $`\approx`$. Because $`\sqcap`$'s result order tracks the left operand while $`\sqcup`$'s does too but with the opposite bias, the
-absorption identities $`a \sqcup (a \sqcap b) = a`$ and $`a \sqcap (a \sqcup b) = a`$ are **not** identities on raw `Vec` values in
-general; they hold only after quotienting by $`\approx`$.
+## 6. The `Option` lift
 
-**Correct framing.** Treat a `Vec` as *the set of its elements, with insertion order kept as a canonical
-representative*. On the quotient $`\text{Vec}/{\approx}`$:
+`None` is adjoined below every inner value. When both operands are `Some`, the
+inner operation is used; otherwise join keeps the present value and meet
+returns `None` unless both are present.
 
-- `Vec::join` is a genuine **join-semilattice** operation, order-isomorphic to finite-`HashSet` union;
-- `Vec::meet` computes set intersection on contents (a derived greatest lower bound on the quotient).
+The Rocq file proves join and meet idempotency, commutativity, associativity,
+both absorption laws, and `None` as join identity. Property tests apply the
+public harness to generated `Option<i64>` triples. Thus the formal model,
+generic Rust implementation, and executable samples describe the same lift.
 
-So `(Vec, join, meet)` is best described as a **join-semilattice on the content quotient with a derived
-intersection** — *idempotency holds even on raw `Vec`* (dedup makes `v.join(&v)` $`\approx v`$ and in fact $`= v`$ when `v`
-has no duplicates), while commutativity/associativity hold up to $`\approx`$ and absorption holds only on $`\text{Vec}/{\approx}`$.
-Property tests must therefore normalise (sort/dedup) before comparing — see
-[engineering/01 — testing](../engineering/01-testing.md).
+![Option adjoins a fresh bottom](figures/option-lift.svg)
 
-> **When to reach for which.** If you want set-lattice semantics, prefer `HashSet` (§4): it *is* a lattice on
-> values, and its `meet` is symmetric. Use the `Vec` impl only when insertion order is itself meaningful and
-> you accept the left-biased, up-to-content laws. Performance also differs — see
-> [engineering/02](../engineering/02-performance.md).
+## 7. Why raw floats are excluded
 
----
+For the candidate `join = f64::max`, `NaN` creates two failures:
 
-## 8. Summary
+1. `NaN != NaN`, so structural idempotency cannot be stated as equality.
+2. `NaN.partial_cmp(x)` is `None`, so the carrier is not a poset under the
+   intended order.
 
-The honest one-line status per impl:
+Rust `max` also drops a one-sided `NaN`. The Rocq model represents finite
+values and a `NaN` token, models Rust's NaN-dropping maximum, and proves
+`nan_breaks_idempotency` under IEEE equality.
 
-- **Numbers, `bool`, `HashSet`:** lawful lattices under `==`, no caveats (`HashSet` lacks a runtime $`\top`$/$`\lnot`$).
-- **`Option<T>`:** a lawful lift — *as lawful as `T`*.
-- **`f32`/`f64`:** a lawful chain on the NaN-free $`[-\infty, +\infty]`$; `NaN` breaks idempotency-under-`==` and the order.
-- **`Vec<T>`:** a join-semilattice on the content quotient; commutativity/associativity up to $`\approx`$, absorption
-  only on the quotient.
+A wrapper whose constructor rejects `NaN` changes the carrier to a lawful
+subset and may implement the traits. That validation must be represented by
+the type; a comment at a raw-float call site is insufficient.
 
-→ Continue to **[04 — The semiring bridge](04-semiring-bridge.md)**, or jump to
-**[design/03 — per-impl semantics](../design/03-semantics.md)** for the API-level table.
+## 8. Why raw sequences are excluded
 
----
+An order-preserving union is left biased:
+
+```math
+[\text{false}] \vee [\text{true}]
+= [\text{false},\text{true}]
+\neq
+[\text{true},\text{false}]
+= [\text{true}] \vee [\text{false}]
+```
+
+Rocq theorem `raw_sequence_join_is_not_commutative` evaluates this witness.
+Content equality could quotient away order, but Rust `Vec::eq` does not. A
+canonical sorted/deduplicated newtype or a set representation makes the chosen
+equality explicit and can implement the traits lawfully.
+
+## 9. Stack-safety refinement
+
+Collection operations refine an explicit state machine whose state is a pending
+sequence plus accumulator. `explicit_worklist_progress` proves that every
+successful step strictly decreases pending length and that the machine halts
+exactly when pending is empty.
+
+The theorem proves termination of the abstract iterative schedule. Source
+structure and a 64 KiB-stack test provide the Rust refinement evidence: all
+input-sized work is performed by loops over heap-backed hash tables, not by
+native recursion. A PDA is unnecessary because union and intersection do not
+have a nested-language stack discipline.
+
+## 10. Traceability ladder
+
+[`proofs/doc/lattice-invariants.tsv`](../../proofs/doc/lattice-invariants.tsv)
+is the join key across evidence:
+
+Each law identifier maps to exactly three evidence classes:
+
+- its Rocq theorem;
+- its Rust property, countermodel, or stack test;
+- its verification command.
+
+The formal driver rejects unchecked proof escapes, rebuilds every proof, checks
+the exact number of closed `Print Assumptions` reports, and validates every
+registry path, theorem, test, hook, and gate. The current registry contains 13
+consistent obligations.
+
+Executable tests establish implementation correspondence over exhaustive or
+generated samples; Rocq establishes the abstract theorems for arbitrary values
+under explicit hypotheses. Neither is silently substituted for the other.
 
 ## References
 
-1. Davey, B. A., & Priestley, H. A. (2002). *Introduction to Lattices and Order* (2nd ed.). Cambridge
-   University Press. <https://doi.org/10.1017/CBO9780511809088>.
-2. IEEE. (2019). *IEEE Standard for Floating-Point Arithmetic* (IEEE 754-2019). <https://doi.org/10.1109/IEEESTD.2019.8766229>
-   — the `maxNum`/`minNum` and `NaN` comparison semantics underlying §6.
+1. Birkhoff, G. *Lattice Theory*, 3rd ed. American Mathematical Society, 1967.
+   [https://doi.org/10.1090/coll/025](https://doi.org/10.1090/coll/025)
+2. Davey, B. A., and Priestley, H. A. *Introduction to Lattices and Order*, 2nd
+   ed. Cambridge University Press, 2002.
+   [https://doi.org/10.1017/CBO9780511809088](https://doi.org/10.1017/CBO9780511809088)
+3. Claessen, K., and Hughes, J. “QuickCheck: A Lightweight Tool for Random
+   Testing of Haskell Programs.” ICFP 2000.
+   [https://doi.org/10.1145/351240.351266](https://doi.org/10.1145/351240.351266)

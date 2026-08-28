@@ -1,75 +1,59 @@
-// Lawfulness matrix: which lattice laws each built-in impl actually satisfies, and under which equality.
-// This is the corrective artifact for the over-strong "satisfies all laws" claim.
-//   green = holds   amber = holds up to content-equality / on the NaN-free subset   red = fails
-// Render:  dot -Tsvg lawfulness-matrix.dot -o lawfulness-matrix.svg   Tool: Graphviz (HTML-table node).
 digraph lawfulness {
+    // llattice v2 lawfulness matrix: green lawful, amber conditional, red excluded.
     bgcolor = "white";
     node [shape=plaintext, fontname="DejaVu Sans"];
 
     M [label=<
     <table border="0" cellborder="1" cellspacing="0" cellpadding="7">
       <tr>
-        <td bgcolor="#1F2937"><font color="white"><b>impl &#92; law</b></font></td>
-        <td bgcolor="#1F2937"><font color="white"><b>idempotent</b></font></td>
-        <td bgcolor="#1F2937"><font color="white"><b>commutative</b></font></td>
-        <td bgcolor="#1F2937"><font color="white"><b>associative</b></font></td>
+        <td bgcolor="#1F2937"><font color="white"><b>domain</b></font></td>
+        <td bgcolor="#1F2937"><font color="white"><b>join</b></font></td>
+        <td bgcolor="#1F2937"><font color="white"><b>meet</b></font></td>
         <td bgcolor="#1F2937"><font color="white"><b>absorption</b></font></td>
-        <td bgcolor="#1F2937"><font color="white"><b>structure</b></font></td>
+        <td bgcolor="#1F2937"><font color="white"><b>bottom</b></font></td>
+        <td bgcolor="#1F2937"><font color="white"><b>v2 exposure</b></font></td>
       </tr>
       <tr>
-        <td align="left"><b>uN / iN / usize / isize</b></td>
-        <td bgcolor="#86EFAC">holds</td>
-        <td bgcolor="#86EFAC">holds</td>
-        <td bgcolor="#86EFAC">holds</td>
-        <td bgcolor="#86EFAC">holds</td>
-        <td bgcolor="#86EFAC" align="left">bounded distributive chain</td>
-      </tr>
-      <tr>
-        <td align="left"><b>f32 / f64</b></td>
-        <td bgcolor="#FCA5A5">fails at NaN &#185;</td>
-        <td bgcolor="#86EFAC">holds</td>
-        <td bgcolor="#FCD34D">NaN-free only</td>
-        <td bgcolor="#FCD34D">NaN-free only</td>
-        <td bgcolor="#FCD34D" align="left">chain on [&#8722;&#8734;,+&#8734;], NaN-free</td>
+        <td align="left"><b>integer primitives</b></td>
+        <td bgcolor="#86EFAC">lawful</td><td bgcolor="#86EFAC">lawful</td>
+        <td bgcolor="#86EFAC">lawful</td><td bgcolor="#86EFAC">MIN</td>
+        <td bgcolor="#86EFAC">all traits</td>
       </tr>
       <tr>
         <td align="left"><b>bool</b></td>
-        <td bgcolor="#86EFAC">holds</td>
-        <td bgcolor="#86EFAC">holds</td>
-        <td bgcolor="#86EFAC">holds</td>
-        <td bgcolor="#86EFAC">holds</td>
-        <td bgcolor="#86EFAC" align="left">two-element Boolean lattice</td>
+        <td bgcolor="#86EFAC">OR</td><td bgcolor="#86EFAC">AND</td>
+        <td bgcolor="#86EFAC">lawful</td><td bgcolor="#86EFAC">false</td>
+        <td bgcolor="#86EFAC">all traits</td>
       </tr>
       <tr>
         <td align="left"><b>Option&lt;T&gt;</b></td>
-        <td bgcolor="#86EFAC">inherits T &#178;</td>
-        <td bgcolor="#86EFAC">inherits T &#178;</td>
-        <td bgcolor="#86EFAC">inherits T &#178;</td>
-        <td bgcolor="#86EFAC">inherits T &#178;</td>
-        <td bgcolor="#86EFAC" align="left">lift T&#8869; (adds &#8869; = None)</td>
+        <td bgcolor="#FCD34D">inherits T</td><td bgcolor="#FCD34D">inherits T</td>
+        <td bgcolor="#FCD34D">when T: Lattice</td><td bgcolor="#86EFAC">None</td>
+        <td bgcolor="#FCD34D">capability preserving</td>
       </tr>
       <tr>
-        <td align="left"><b>HashSet&lt;T&gt;</b></td>
-        <td bgcolor="#86EFAC">holds</td>
-        <td bgcolor="#86EFAC">holds</td>
-        <td bgcolor="#86EFAC">holds</td>
-        <td bgcolor="#86EFAC">holds</td>
-        <td bgcolor="#86EFAC" align="left">distributive, &#8869; = {}, no &#8868;/&#172; &#179;</td>
+        <td align="left"><b>HashSet&lt;T,S&gt;</b></td>
+        <td bgcolor="#86EFAC">union</td><td bgcolor="#86EFAC">intersection</td>
+        <td bgcolor="#86EFAC">lawful</td><td bgcolor="#FCD34D">when S: Default</td>
+        <td bgcolor="#86EFAC">layered traits</td>
       </tr>
       <tr>
-        <td align="left"><b>Vec&lt;T&gt;</b></td>
-        <td bgcolor="#86EFAC">holds (dedup)</td>
-        <td bgcolor="#FCD34D">up to content-eq</td>
-        <td bgcolor="#FCD34D">up to content-eq</td>
-        <td bgcolor="#FCA5A5">fails &#8308;</td>
-        <td bgcolor="#FCA5A5" align="left">join-semilattice only &#8308;</td>
+        <td align="left"><b>raw f32 / f64</b></td>
+        <td bgcolor="#FCA5A5">NaN breaks equality</td>
+        <td bgcolor="#FCA5A5">NaN incomparable</td>
+        <td bgcolor="#FCA5A5">not applicable</td><td bgcolor="#FCA5A5">none</td>
+        <td bgcolor="#FCA5A5">no impl</td>
+      </tr>
+      <tr>
+        <td align="left"><b>raw Vec&lt;T&gt;</b></td>
+        <td bgcolor="#FCA5A5">left bias</td><td bgcolor="#FCA5A5">left bias</td>
+        <td bgcolor="#FCA5A5">fails structurally</td><td bgcolor="#FCA5A5">none</td>
+        <td bgcolor="#FCA5A5">no impl</td>
       </tr>
       <tr>
         <td colspan="6" align="left"><font point-size="10">
-        Legend: &#9632; holds &#160;&#160; &#9632; holds up to content-equality / NaN-free subset &#160;&#160; &#9632; fails.&#160;&#160;
-        &#185; NaN&#8852;NaN = NaN, yet NaN==NaN is false. &#160;&#178; Option&lt;f64&gt; inherits the NaN defect.<br align="left"/>
-        &#179; the mathematical powerset &#119979;(U) is a complete atomic Boolean algebra; the runtime HashSet has &#8869;={} but no &#8868; / complement.&#160;
-        &#8308; [1,2]&#8852;[2,1]=[1,2] &#8800; [2,1]=[2,1]&#8852;[1,2]; meet is left-biased; absorption fails on raw Vec.<br align="left"/>
+        Trait laws use Rust structural PartialEq. Validated or canonicalized
+        newtypes may expose narrower carriers lawfully.
         </font></td>
       </tr>
     </table>

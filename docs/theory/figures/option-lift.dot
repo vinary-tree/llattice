@@ -1,9 +1,6 @@
-// Option<T> as the LIFT (·)⊥ : adjoin a fresh bottom `None` below an isomorphic copy of any lattice T.
-//   join: None ⊔ x = x          (None is the identity for ⊔)
-//   meet: None ⊓ x = None       (None is the annihilator for ⊓)
-//   Some(a) ⊔ Some(b) = Some(a ⊔ b),   Some(a) ⊓ Some(b) = Some(a ⊓ b)
-// Render:  dot -Tsvg option-lift.dot -o option-lift.svg      Tool: Graphviz (graph_layout).
 digraph option_lift {
+    // Option<T> adjoins None as a fresh bottom below an isomorphic copy of T.
+    // None is join identity and meet annihilator; Some lifts both operations.
     bgcolor = "white";
     rankdir = BT;
     ranksep = 0.55;

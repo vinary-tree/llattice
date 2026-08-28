@@ -1,9 +1,6 @@
-// Hasse diagram of the powerset lattice of {1,2,3}, ordered by subset inclusion (⊆).
-// Covering edges are drawn UPWARD (lower ⊑ higher): join = ∪ climbs up, meet = ∩ descends.
-// Canonical source for docs/diagrams/powerset-hasse.svg.
-// Render:  dot -Tsvg powerset-hasse.dot -o powerset-hasse.svg
-// Tool:    Graphviz (graph_layout) — `rank=same` per cardinality pins exact order levels.
 digraph powerset_hasse {
+    // Powerset lattice of {1,2,3}, ordered by subset inclusion.
+    // Covering edges run upward; rank=same pins exact cardinality levels.
     bgcolor   = "white";
     rankdir   = BT;                       // ⊥ at the bottom, ⊤ at the top
     nodesep   = 0.35;

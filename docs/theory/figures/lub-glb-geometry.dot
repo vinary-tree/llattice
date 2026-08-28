@@ -1,8 +1,6 @@
-// The defining geometry of a lattice: every pair {a, b} has a least upper bound a ⊔ b (the join,
-// drawn ABOVE both) and a greatest lower bound a ⊓ b (the meet, drawn BELOW both).
-// Mnemonic colours: join = green (climb up), meet = amber (descend), operands = violet.
-// Render:  dot -Tsvg lub-glb-geometry.dot -o lub-glb-geometry.svg   Tool: Graphviz (graph_layout).
 digraph lub_glb {
+    // Every pair has a least upper bound and greatest lower bound.
+    // Green climbs to join, amber descends to meet, violet marks operands.
     bgcolor = "white";
     rankdir = BT;
     ranksep = 0.5;

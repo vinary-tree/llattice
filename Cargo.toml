@@ -1,12 +1,12 @@
 [package]
 name = "llattice"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 rust-version = "1.70"
 authors = ["Dylon Edwards <dylon.devo@gmail.com>"]
 license = "Apache-2.0"
 repository = "https://github.com/vinary-tree/llattice"
-description = "A minimal lattice trait (join/meet) with built-in implementations for integers, floats, bool, Option, HashSet, and Vec."
+description = "Lawful layered join-semilattice, meet-semilattice, lattice, and bottom traits with optimized in-place joins."
 keywords = ["lattice", "join", "meet", "semilattice", "crdt"]
 categories = ["data-structures", "algorithms"]
 readme = "README.md"
@@ -14,4 +14,8 @@ readme = "README.md"
 [dependencies]
 
 [dev-dependencies]
-proptest = "1"
+proptest = { version = "=1.4.0", default-features = false, features = ["std"] }
+
+[[bench]]
+name = "hot_paths"
+harness = false
