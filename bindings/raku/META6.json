@@ -1,0 +1,26 @@
+{
+  "name": "LLattice",
+  "version": "0.1.0",
+  "description": "Lawful lattice values and host-implementable Vinary Tree providers for Raku",
+  "auth": "zef:vinary-tree",
+  "api": "1",
+  "license": "Apache-2.0",
+  "source-url": "https://github.com/vinary-tree/llattice.git",
+  "provides": {
+    "LLattice": "lib/LLattice.rakumod"
+  },
+  "resources": [
+    "libraries/llattice_raku_provider"
+  ],
+  "depends": [
+    "Vinary::Tree::Interop:ver<4.0.0>:auth<zef:vinary-tree>"
+  ],
+  "test-depends": [
+    "Test"
+  ],
+  "tags": [
+    "lattice",
+    "algebra",
+    "interop"
+  ]
+}

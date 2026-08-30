@@ -52,12 +52,13 @@ Each illustration, its source, its tool, and its diagram type. All figures rende
 | 17 | `NaN` poisoning | `../engineering/figures/nan-poison.dot` | Graphviz | data-flow |
 | 18 | Product lattice (componentwise) | `../guides/figures/product-lattice.puml` | PlantUML | Hasse + LaTeX labels |
 | 19 | Law-audit pipeline | `../engineering/figures/law-audit-flow.dot` | Graphviz | flowchart |
+| 20 | Foreign host-provider lifecycle | `../bindings/figures/host-provider-flow.puml` | PlantUML | component flow |
 
 ---
 
 ## 3. Shared colour palette
 
-Defined once, reused everywhere, so a colour means the same concept across all 19 figures.
+Defined once, reused everywhere, so a colour means the same concept across all 20 figures.
 
 | Swatch | Hex | Concept |
 |--------|-----|---------|

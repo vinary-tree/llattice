@@ -1,0 +1,17 @@
+name = "LLattice"
+uuid = "5d6d4c0b-8673-4dd4-8eed-bddf0b213e50"
+authors = ["Dylon Edwards <dylon.devo@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+VinaryTreeInterop = "8d6503e5-4d65-4bd8-a8ee-293a0149584e"
+
+[compat]
+VinaryTreeInterop = "4"
+julia = "1.10"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

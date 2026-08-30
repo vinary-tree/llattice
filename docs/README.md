@@ -18,6 +18,7 @@ fully-coloured diagrams authored from the pgmcp diagramming catalog (see [diagra
 | **building distributed state** | [guides/03 — CRDT cookbook](guides/03-crdt-cookbook.md) | [guides/04 — Fixpoints & analysis](guides/04-fixpoints-and-analysis.md) |
 | **here for the maths** | [theory/01 — Order theory](theory/01-order-theory.md) | [theory/02](theory/02-semilattices-lattices.md) → [03](theory/03-lawfulness-and-proofs.md) → [04](theory/04-semiring-bridge.md) |
 | **integrating / reviewing** | [design/01 — Architecture](design/01-architecture.md) | [design/03 — Semantics](design/03-semantics.md), [engineering/03 — Security](engineering/03-security.md) |
+| **using Julia or Raku** | [bindings — Overview](bindings/README.md) | [Julia](bindings/julia.md) or [Raku](bindings/raku.md) |
 | **unsure about a symbol** | [Glossary](GLOSSARY.md) | — |
 
 ---
@@ -44,7 +45,21 @@ Why the crate is shaped the way it is.
   exist.
 - [**03 — Semantics**](design/03-semantics.md) — the per-impl behavioural contract: order, bounds, edge cases.
 - Architecture Decision Records: [ADR-0001 — extract a leaf crate](design/adr/0001-extract-llattice-leaf-crate.md),
-  [ADR-0002 — bridge in `lling-llang`](design/adr/0002-semiring-bridge-lives-in-lling-llang.md).
+  [ADR-0002 — bridge in `lling-llang`](design/adr/0002-semiring-bridge-lives-in-lling-llang.md),
+  [ADR-0003 — dynamic host providers](design/adr/0003-host-lattice-provider.md).
+
+## Language bindings
+
+- [**Overview and architecture**](bindings/README.md) — provider capability,
+  domain identity, ownership, batching, threading, and security.
+- [**Julia**](bindings/julia.md) — multiple dispatch, custom values,
+  `VinaryTreeInterop.LatticeValue`, type stability, and Documenter.
+- [**Raku**](bindings/raku.md) — roles, collection idioms, custom NativeCall
+  providers, zef build behavior, and deterministic disposal.
+- [**Performance**](bindings/performance.md) — direct, pairwise ABI, and bounded
+  batch cost model; repeated-sample methodology and diagnostic results.
+- [**Capability matrix**](bindings/completeness-matrix.tsv) — implemented cells
+  and their conformance, benchmark, and documentation evidence.
 
 ## Guides
 
@@ -88,6 +103,7 @@ docs/
 │   └── figures/               ← Graphviz/D2/PlantUML/TikZ sources + rendered SVG
 ├── design/                    ← 01 architecture · 02 orphan rule · 03 semantics · adr/
 │   └── figures/
+├── bindings/                  ← shared ABI architecture · Julia · Raku · capability matrix
 ├── guides/                    ← 01 quickstart · 02 implementing · 03 CRDTs · 04 fixpoints
 │   └── figures/
 ├── engineering/               ← 01 testing · 02 performance · 03 security · 04 releasing

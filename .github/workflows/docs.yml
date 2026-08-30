@@ -1,0 +1,57 @@
+name: Julia API documentation
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  documenter:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve the matching interop branch
+        id: interop-ref
+        shell: bash
+        run: |
+          set -euo pipefail
+          candidate=${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}
+          if git ls-remote --exit-code --heads \
+            https://github.com/vinary-tree/vinary-tree-interop.git \
+            "$candidate" >/dev/null 2>&1; then
+            echo "ref=$candidate" >>"$GITHUB_OUTPUT"
+          else
+            echo "ref=main" >>"$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        with:
+          repository: vinary-tree/vinary-tree-interop
+          ref: ${{ steps.interop-ref.outputs.ref }}
+          path: target/vinary-tree-interop
+      - uses: julia-actions/setup-julia@v2
+        with: { version: '1.10' }
+      - name: Build and check the API reference
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LLATTICE_DOCS_DEPLOY: ${{ github.event_name != 'pull_request' && '1' || '0' }}
+          TMPDIR: ${{ runner.temp }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          julia -e '
+            using Pkg
+            Pkg.activate("bindings/julia/LLattice/docs")
+            Pkg.develop([
+              PackageSpec(path="target/vinary-tree-interop/bindings/julia/VinaryTreeInterop"),
+              PackageSpec(path="bindings/julia/LLattice"),
+            ])
+            Pkg.instantiate()
+            include("bindings/julia/LLattice/docs/make.jl")
+          ' 2>&1 | tee "$RUNNER_TEMP/llattice-julia-docs.log"

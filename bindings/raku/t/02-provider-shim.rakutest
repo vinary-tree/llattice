@@ -1,0 +1,41 @@
+use v6.d;
+
+use Test;
+use Vinary::Tree::Interop;
+
+plan 1;
+
+my $root = $?FILE.IO.absolute.IO.parent.parent;
+my $build = $root.add('.build');
+$build.mkdir;
+my $executable = $build.add(
+    $*KERNEL.name eq 'win32' ?? 'provider-shim-test.exe' !! 'provider-shim-test');
+LEAVE {
+    $executable.unlink if $executable.e;
+    $build.rmdir if $build.d && $build.dir.elems == 0;
+}
+
+my $source = $root.add('t/provider-shim-test.c');
+my $include = native-header-path().parent;
+my $compiler = %*ENV<CC> // 'cc';
+my @command;
+if $*KERNEL.name eq 'win32' && $compiler.IO.basename.lc eq any(<cl cl.exe>) {
+    @command = $compiler, |</nologo /std:c11 /O2 /W4 /WX>,
+        "/I$include", $source.Str, "/Fe:$executable";
+} else {
+    @command = $compiler, |<-std=c17 -O2 -Wall -Wextra -Werror>,
+        "-I$include", $source.Str, '-o', $executable.Str;
+}
+
+my $compile = run |@command, :out, :err;
+my $compile-output = $compile.out.slurp-rest ~ $compile.err.slurp-rest;
+if $compile.exitcode {
+    diag $compile-output;
+    flunk 'the native provider shim passes its hostile boundary harness';
+    exit 1;
+}
+my $run = run $executable.Str, :out, :err;
+my $run-output = $run.out.slurp-rest ~ $run.err.slurp-rest;
+diag $run-output if $run-output.chars;
+is $run.exitcode, 0,
+    'the native provider shim passes its hostile boundary harness';

@@ -1,0 +1,6 @@
+project	language	package	capability	host_idiom	lifecycle	conformance	benchmark	documentation	status
+llattice	Rust	llattice	Lattice trait and built-ins	trait; std collections	owned values	cargo tests; proptest; Rocq	zero-cost native path documented	rustdoc; docs.rs	implemented
+llattice	Julia	LLattice	built-in lattice values	multiple dispatch; iterable finite sets	close plus finalizer fallback	Julia unit; law; provider; API-doc tests	type-inference and allocation checks	Documenter; usage guide	implemented
+llattice	Julia	LLattice	host lattice provider	AbstractLattice; provider function	VtResource retain/release	ABI; domain; exception; batch tests	bounded batch fast path documented	provider and security guide	implemented
+llattice	Raku	LLattice	built-in lattice values	role; Iterable; smart matching	garbage-collected values	Raku unit and finite-law tests	language-local operations checked	Pod; usage guide	implemented
+llattice	Raku	LLattice	host lattice provider	role; NativeCall adapter	deterministic close plus DESTROY	ABI; domain; lifecycle; batch tests	C17 shim and bounded batch path	Pod; provider and security guide	implemented

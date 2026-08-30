@@ -42,3 +42,112 @@ jobs:
         run: make -C proofs/coq proof-check
       - name: Build the Rocq proofs
         run: make -C proofs/coq
+
+  julia:
+    name: Julia lattice values and providers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve the matching interop branch
+        id: interop-ref
+        shell: bash
+        run: |
+          set -euo pipefail
+          candidate=${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}
+          if git ls-remote --exit-code --heads \
+            https://github.com/vinary-tree/vinary-tree-interop.git \
+            "$candidate" >/dev/null 2>&1; then
+            echo "ref=$candidate" >>"$GITHUB_OUTPUT"
+          else
+            echo "ref=main" >>"$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        with:
+          repository: vinary-tree/vinary-tree-interop
+          ref: ${{ steps.interop-ref.outputs.ref }}
+          path: target/vinary-tree-interop
+      - uses: julia-actions/setup-julia@v2
+        with: { version: '1.10' }
+      - name: Test type-stable values and host providers
+        shell: bash
+        run: |
+          set -euo pipefail
+          julia -e '
+            using Pkg
+            Pkg.activate("target/julia-test")
+            Pkg.develop(path="target/vinary-tree-interop/bindings/julia/VinaryTreeInterop")
+            Pkg.develop(path="bindings/julia/LLattice")
+            Pkg.test("LLattice")
+          ' 2>&1 | tee "$RUNNER_TEMP/llattice-julia-test.log"
+      - name: Smoke benchmark pairwise and batch boundaries
+        env:
+          LLATTICE_BENCH_ITERATIONS: '1000'
+          LLATTICE_BENCH_SAMPLES: '3'
+        shell: bash
+        run: |
+          set -euo pipefail
+          julia --project=target/julia-test \
+            bindings/julia/LLattice/benchmark/compare.jl \
+            2>&1 | tee "$RUNNER_TEMP/llattice-julia-benchmark.log"
+      - name: Build Documenter reference
+        shell: bash
+        run: |
+          set -euo pipefail
+          julia -e '
+            using Pkg
+            Pkg.activate("bindings/julia/LLattice/docs")
+            Pkg.develop(path="target/vinary-tree-interop/bindings/julia/VinaryTreeInterop")
+            Pkg.develop(path="bindings/julia/LLattice")
+            Pkg.instantiate()
+            include("bindings/julia/LLattice/docs/make.jl")
+          ' 2>&1 | tee "$RUNNER_TEMP/llattice-julia-docs.log"
+
+  raku:
+    name: Raku lattice values and providers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve the matching interop branch
+        id: interop-ref
+        shell: bash
+        run: |
+          set -euo pipefail
+          candidate=${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}
+          if git ls-remote --exit-code --heads \
+            https://github.com/vinary-tree/vinary-tree-interop.git \
+            "$candidate" >/dev/null 2>&1; then
+            echo "ref=$candidate" >>"$GITHUB_OUTPUT"
+          else
+            echo "ref=main" >>"$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        with:
+          repository: vinary-tree/vinary-tree-interop
+          ref: ${{ steps.interop-ref.outputs.ref }}
+          path: target/vinary-tree-interop
+      - uses: Raku/setup-raku@v1
+      - name: Install the shared ABI package
+        run: zef install --/test ./target/vinary-tree-interop/bindings/raku
+      - name: Build and test the distribution
+        shell: bash
+        run: |
+          set -euo pipefail
+          zef build ./bindings/raku 2>&1 | tee "$RUNNER_TEMP/llattice-raku-build.log"
+          zef test ./bindings/raku 2>&1 | tee "$RUNNER_TEMP/llattice-raku-test.log"
+      - name: Smoke benchmark pairwise and batch boundaries
+        env:
+          LLATTICE_BENCH_ITERATIONS: '1000'
+          LLATTICE_BENCH_SAMPLES: '3'
+        shell: bash
+        run: |
+          set -euo pipefail
+          raku -Ibindings/raku/lib bindings/raku/benchmark/compare.raku \
+            2>&1 | tee "$RUNNER_TEMP/llattice-raku-benchmark.log"
+
+  binding-matrix:
+    name: Binding completeness matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Raku/setup-raku@v1
+      - run: raku scripts/check-bindings.raku
