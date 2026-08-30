@@ -35,7 +35,12 @@ jobs:
     # Rocq >= 9 is published under rocq/rocq-prover, not the legacy
     # coqorg/coq namespace. Pin the exact 9.1.1 amd64 manifest so a moved tag
     # cannot silently change the proof environment.
-    container: rocq/rocq-prover:9.1.1@sha256:b85a80a11bb65c7c843f91c7cbcce282f22ee397c9ca42f123d568ab6cef68b0
+    container:
+      # yamllint disable-line rule:line-length
+      image: rocq/rocq-prover:9.1.1@sha256:b85a80a11bb65c7c843f91c7cbcce282f22ee397c9ca42f123d568ab6cef68b0
+      # The image's default user cannot write GitHub's mounted runner-command
+      # files, so checkout fails before any proof is evaluated.
+      options: --user root
     steps:
       - uses: actions/checkout@v4
       - name: Reject unchecked proof escapes
@@ -75,8 +80,10 @@ jobs:
           julia -e '
             using Pkg
             Pkg.activate("target/julia-test")
-            Pkg.develop(path="target/vinary-tree-interop/bindings/julia/VinaryTreeInterop")
-            Pkg.develop(path="bindings/julia/LLattice")
+            Pkg.develop([
+              Pkg.PackageSpec(path="target/vinary-tree-interop/bindings/julia/VinaryTreeInterop"),
+              Pkg.PackageSpec(path="bindings/julia/LLattice"),
+            ])
             Pkg.test("LLattice")
           ' 2>&1 | tee "$RUNNER_TEMP/llattice-julia-test.log"
       - name: Smoke benchmark pairwise and batch boundaries
@@ -96,8 +103,10 @@ jobs:
           julia -e '
             using Pkg
             Pkg.activate("bindings/julia/LLattice/docs")
-            Pkg.develop(path="target/vinary-tree-interop/bindings/julia/VinaryTreeInterop")
-            Pkg.develop(path="bindings/julia/LLattice")
+            Pkg.develop([
+              Pkg.PackageSpec(path="target/vinary-tree-interop/bindings/julia/VinaryTreeInterop"),
+              Pkg.PackageSpec(path="bindings/julia/LLattice"),
+            ])
             Pkg.instantiate()
             include("bindings/julia/LLattice/docs/make.jl")
           ' 2>&1 | tee "$RUNNER_TEMP/llattice-julia-docs.log"
@@ -125,7 +134,8 @@ jobs:
           repository: vinary-tree/vinary-tree-interop
           ref: ${{ steps.interop-ref.outputs.ref }}
           path: target/vinary-tree-interop
-      - uses: Raku/setup-raku@v1
+      # Raku/setup-raku v1, pinned for reproducible action execution.
+      - uses: Raku/setup-raku@b8b1a4ebe85ef112edfc65e9edc8c57735367e3f
       - name: Install the shared ABI package
         run: zef install --/test ./target/vinary-tree-interop/bindings/raku
       - name: Build and test the distribution

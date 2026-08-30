@@ -16,7 +16,12 @@ LEAVE {
 }
 
 my $source = $root.add('t/provider-shim-test.c');
-my $include = native-header-path().parent;
+my $include = $build.add('interop-include');
+my $header = materialize-native-header($include);
+LEAVE {
+    $header.unlink if $header.e;
+    $include.rmdir if $include.d && $include.dir.elems == 0;
+}
 my $compiler = %*ENV<CC> // 'cc';
 my @command;
 if $*KERNEL.name eq 'win32' && $compiler.IO.basename.lc eq any(<cl cl.exe>) {
