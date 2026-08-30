@@ -47,10 +47,10 @@ jobs:
         run: make -C proofs/coq proof-check
       - name: Build the Rocq proofs
         # GitHub's root container user does not inherit the image's opam-switch
-        # PATH. Execute inside the pinned switch explicitly so coq_makefile and
-        # the Rocq tools resolve from the digest-pinned image.
+        # PATH. The rocq/rocq-prover image owns its initialized root beneath
+        # /home/rocq, so execute inside that pinned switch explicitly.
         run: >-
-          opam exec --root=/home/coq/.opam --switch="$COMPILER" --
+          opam exec --root=/home/rocq/.opam --switch="$COMPILER" --
           make -C proofs/coq
 
   julia:
