@@ -16,7 +16,11 @@ all: $(COQMAKEFILE)
 	$(COQMAKE)
 
 $(COQMAKEFILE): _CoqProject
-	coq_makefile -f _CoqProject -o $@
+	if command -v rocq >/dev/null 2>&1; then \
+		rocq makefile -f _CoqProject -o $@; \
+	else \
+		coq_makefile -f _CoqProject -o $@; \
+	fi
 
 clean:
 	if [ -f $(COQMAKEFILE) ]; then $(COQMAKE) clean; fi
