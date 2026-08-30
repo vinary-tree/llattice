@@ -30,6 +30,13 @@ my @direct = measurements({
     $value = $value.join($right) for ^$iterations;
 });
 
+my $vector-left = VectorContentLattice.new(value => [1, 2, 3, 5, 8]);
+my $vector-right = VectorContentLattice.new(value => [3, 5, 8, 13, 21]);
+my @vector-content = measurements({
+    my $value = $vector-left;
+    $value = $value.join($vector-right) for ^$iterations;
+});
+
 sub encode-int(MaxMin:D $item --> Blob:D) {
     Blob.new((^8).map({ ($item.value.Int +> (56 - 8 * $_)) +& 0xff }))
 }
@@ -56,6 +63,7 @@ my @batched = measurements({
 
 say "path\toperations\tsamples\tmedian_ns\tmedian_ns_per_operation\tminimum_ns\tmaximum_ns";
 report('raku_direct', $iterations, @direct);
+report('raku_vector_content', $iterations, @vector-content);
 report('c_abi_pairwise', $iterations, @pairwise);
 report('c_abi_batch', $batches * $width, @batched);
 

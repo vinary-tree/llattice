@@ -23,6 +23,16 @@ const VTI = VinaryTreeInterop
     @test Set(join(left, right)) == Set([1, 2, 3])
     @test Set(meet(left, right)) == Set([2])
 
+    ordered = VectorContentLattice([1, 2, 2])
+    reversed = VectorContentLattice([2, 1])
+    extended = VectorContentLattice([2, 3])
+    @test collect(ordered) == [1, 2]
+    @test collect(join(ordered, extended)) == [1, 2, 3]
+    @test collect(join(extended, ordered)) == [2, 3, 1]
+    @test collect(meet(ordered, extended)) == [2]
+    @test ordered == reversed
+    @test validate_laws((ordered, reversed, extended))
+
     bottom = OptionalLattice{MaxMin{Int64}}(nothing)
     present = OptionalLattice(MaxMin(Int64(2)))
     @test join(bottom, present) == present

@@ -9,6 +9,10 @@ using LLattice
 left = FiniteSetLattice([:read, :write])
 right = FiniteSetLattice([:write, :admin])
 Set(join(left, right))
+
+pipeline = VectorContentLattice([:parse, :analyze])
+extension = VectorContentLattice([:analyze, :publish])
+collect(join(pipeline, extension))
 ```
 
 The operations obey the lattice laws over their documented domains. Use
@@ -22,6 +26,7 @@ AbstractLattice
 MaxMin
 BooleanLattice
 FiniteSetLattice
+VectorContentLattice
 OptionalLattice
 join
 meet

@@ -3,7 +3,7 @@ use lib $?FILE.IO.absolute.IO.parent.parent.add('lib').Str;
 use LLattice;
 use Vinary::Tree::Interop;
 
-plan 17;
+plan 24;
 
 my @numbers = (1, 2, 3).map({ MaxMin.new(value => $_) });
 is @numbers[0].join(@numbers[2]).value, 3, 'numeric join is max';
@@ -20,6 +20,21 @@ my $left = FiniteSetLattice.new(value => set(1, 2));
 my $right = FiniteSetLattice.new(value => set(2, 3));
 is-deeply $left.join($right).value, set(1, 2, 3), 'set join is union';
 is-deeply $left.meet($right).value, set(2), 'set meet is intersection';
+
+my $ordered = VectorContentLattice.new(value => [1, 2, 2]);
+my $reversed = VectorContentLattice.new(value => [2, 1]);
+my $extended = VectorContentLattice.new(value => [2, 3]);
+is-deeply $ordered.value, [1, 2], 'vector values are deduplicated at first occurrence';
+is-deeply $ordered.join($extended).value, [1, 2, 3],
+    'vector join preserves left order and appends new right content';
+is-deeply $extended.join($ordered).value, [2, 3, 1],
+    'vector join exposes its deterministic left bias';
+is-deeply $ordered.meet($extended).value, [2],
+    'vector meet preserves common values in left order';
+ok equivalent($ordered, $reversed), 'vector equality is defined on content';
+ok validate-laws([$ordered, $reversed, $extended]),
+    'vector-content quotient satisfies every lattice law';
+is-deeply $ordered.list.Array, [1, 2], 'vector lattice is Positional and Iterable';
 
 sub encode-int(MaxMin:D $item --> Blob:D) {
     Blob.new((^8).map({ ($item.value.Int +> (56 - 8 * $_)) +& 0xff }))

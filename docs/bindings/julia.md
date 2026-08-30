@@ -26,12 +26,19 @@ left = FiniteSetLattice([:read, :write])
 right = FiniteSetLattice([:write, :admin])
 Set(join(left, right)) == Set([:read, :write, :admin])
 
+pipeline = VectorContentLattice([:parse, :analyze])
+extension = VectorContentLattice([:analyze, :publish])
+collect(join(pipeline, extension)) == [:parse, :analyze, :publish]
+
 validate_laws(MaxMin.([1, 2, 3]))
 ```
 
 `FiniteSetLattice` implements `iterate`, `length`, and `in`, so it participates
-in ordinary Julia collection code. `OptionalLattice{T}(nothing)` adjoins a new
-bottom element to lattice `T`.
+in ordinary Julia collection code. `VectorContentLattice` is iterable and
+indexable; its join and meet preserve left-hand presentation order, while its
+equality compares finite content so the same quotient as Rust's `Vec` lattice
+satisfies the laws. `OptionalLattice{T}(nothing)` adjoins a new bottom element
+to lattice `T`.
 
 ## Implement a custom lattice
 

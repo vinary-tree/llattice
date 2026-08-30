@@ -37,6 +37,14 @@ The finite powerset lattice. C<join> is set union and C<meet> is set
 intersection. It does C<Iterable>, reports C<elems>, and supports set-style
 smart matching.
 
+=head2 VectorContentLattice
+
+An order-preserving finite-content lattice matching the native C<Vec> surface.
+Join appends previously unseen right-hand values; meet retains common values in
+left-hand order. The type does C<Iterable> and C<Positional>. Use the exported
+C<equivalent> routine when comparing the content quotient independently of its
+presentation order.
+
 =head2 OptionalLattice
 
 Lifts another lattice with an undefined bottom value. Join keeps a defined
@@ -52,6 +60,12 @@ validate-laws(@finite-witnesses --> Bool)
 
 Exhaustively checks associativity, commutativity, idempotence, and absorption
 over a non-empty finite witness set. It dies with the first counterexample.
+
+=head2 equivalent
+
+Compares built-in lattice values according to their mathematical carrier. For
+C<VectorContentLattice>, this deliberately ignores presentation order while
+requiring exactly the same deduplicated content.
 
 =head2 provider
 

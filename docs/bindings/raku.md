@@ -29,12 +29,18 @@ my $permissions = FiniteSetLattice.new(value => set(<read write>));
 say $permissions.elems;
 say 'read' ~~ $permissions;
 
+my $pipeline = VectorContentLattice.new(value => [<parse analyze>]);
+my $extension = VectorContentLattice.new(value => [<analyze publish>]);
+say $pipeline.join($extension).list; # parse analyze publish
+
 validate-laws([$low, $high]);
 ```
 
 `FiniteSetLattice` does `Iterable` and supports smart matching as a set-like
-container. `OptionalLattice` represents the lifted bottom with an undefined
-`.value`.
+container. `VectorContentLattice` does `Iterable` and `Positional`; operations
+preserve left-hand presentation order, while `equivalent` compares content so
+the same quotient as Rust's `Vec` lattice satisfies the laws. `OptionalLattice`
+represents the lifted bottom with an undefined `.value`.
 
 ## Implement and expose a custom value
 

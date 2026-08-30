@@ -62,6 +62,38 @@ class FiniteSetLattice does Lattice does Iterable is export {
     method ACCEPTS(Mu $candidate --> Bool:D) { $candidate (elem) $!value }
 }
 
+class VectorContentLattice does Lattice does Iterable does Positional is export {
+    has @.value;
+
+    submethod BUILD(:@value!) {
+        my @normalized;
+        for @value -> $item {
+            @normalized.push($item) unless @normalized.first(* eqv $item, :k).defined;
+        }
+        @!value = @normalized;
+    }
+
+    method join(VectorContentLattice:D $other --> VectorContentLattice:D) {
+        VectorContentLattice.new(value => [|@!value, |$other.value])
+    }
+
+    method meet(VectorContentLattice:D $other --> VectorContentLattice:D) {
+        VectorContentLattice.new(value => @!value.grep(-> $item {
+            $other.value.first(* eqv $item, :k).defined
+        }).Array)
+    }
+
+    method iterator(--> Iterator:D) { @!value.iterator }
+    method list(--> List:D) { @!value.List }
+    method Seq(--> Seq:D) { @!value.Seq }
+    method elems(--> Int:D) { @!value.elems }
+    method AT-POS(Int:D $index) { @!value.AT-POS($index) }
+    method EXISTS-POS(Int:D $index --> Bool:D) { @!value.EXISTS-POS($index) }
+    method ACCEPTS(Mu $candidate --> Bool:D) {
+        @!value.first(* eqv $candidate, :k).defined
+    }
+}
+
 class OptionalLattice does Lattice is export {
     has Lattice $.value;
 
@@ -77,6 +109,8 @@ class OptionalLattice does Lattice is export {
     }
 }
 
+proto sub equivalent(|) is export {*}
+
 multi sub equivalent(MaxMin:D $left, MaxMin:D $right --> Bool:D) {
     $left.value == $right.value
 }
@@ -91,6 +125,17 @@ multi sub equivalent(
     --> Bool:D
 ) {
     $left.value eqv $right.value
+}
+
+multi sub equivalent(
+    VectorContentLattice:D $left,
+    VectorContentLattice:D $right,
+    --> Bool:D
+) {
+    $left.elems == $right.elems
+        && $left.value.grep(-> $item {
+            $right.value.first(* eqv $item, :k).defined
+        }).elems == $left.elems
 }
 
 multi sub equivalent(OptionalLattice:D $left, OptionalLattice:D $right --> Bool:D) {

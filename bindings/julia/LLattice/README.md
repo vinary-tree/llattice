@@ -2,8 +2,8 @@
 
 `LLattice.jl` brings lawful join/meet lattices and customer-implementable
 Vinary Tree lattice providers to Julia. It includes numeric max/min, Boolean,
-finite-set, and optional lattices; an exhaustive finite law checker; and a
-versioned resource adapter for custom Julia values.
+finite-set, vector-content, and optional lattices; an exhaustive finite law
+checker; and a versioned resource adapter for custom Julia values.
 
 ## Development installation
 
@@ -25,6 +25,10 @@ maximum_value = foldl(join, values)
 left = FiniteSetLattice([:read, :write])
 right = FiniteSetLattice([:write, :admin])
 @assert Set(join(left, right)) == Set([:read, :write, :admin])
+
+ordered = VectorContentLattice([:parse, :analyze])
+extended = VectorContentLattice([:analyze, :publish])
+@assert collect(join(ordered, extended)) == [:parse, :analyze, :publish]
 ```
 
 ## Custom providers

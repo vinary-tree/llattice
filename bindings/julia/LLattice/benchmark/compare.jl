@@ -37,6 +37,16 @@ direct = samples() do
     value
 end
 
+vector_left = VectorContentLattice((1, 2, 3, 5, 8))
+vector_right = VectorContentLattice((3, 5, 8, 13, 21))
+vector_content = samples() do
+    value = vector_left
+    for _ in 1:ITERATIONS
+        value = join(value, vector_right)
+    end
+    value
+end
+
 small = provider(left; domain_id="ll.maxmin.i64.v1", encode=encode_i64,
     decode=decode_i64)
 large = provider(right; domain_id="ll.maxmin.i64.v1", encode=encode_i64,
@@ -59,6 +69,7 @@ end
 
 println("path\toperations\tsamples\tmedian_ns\tmedian_ns_per_operation\tminimum_ns\tmaximum_ns")
 report("julia_direct", ITERATIONS, direct)
+report("julia_vector_content", ITERATIONS, vector_content)
 report("c_abi_pairwise", ITERATIONS, pairwise)
 report("c_abi_batch", batches * batch_width, batched)
 

@@ -8,6 +8,7 @@ export AbstractLattice,
     MaxMin,
     BooleanLattice,
     FiniteSetLattice,
+    VectorContentLattice,
     OptionalLattice,
     join,
     meet,
@@ -67,6 +68,52 @@ Base.:(==)(left::FiniteSetLattice, right::FiniteSetLattice) =
 Base.length(value::FiniteSetLattice) = length(value.value)
 Base.in(item, value::FiniteSetLattice) = in(item, value.value)
 Base.iterate(value::FiniteSetLattice, state...) = iterate(value.value, state...)
+
+"""
+    VectorContentLattice(values)
+
+Order-preserving finite-content lattice corresponding to llattice's native
+`Vec` implementation. `join` appends previously unseen right-hand values and
+`meet` retains common values in left-hand order. Equality intentionally
+compares content rather than presentation order: the native vector operations
+form a lattice on that quotient, while the stored order remains deterministic.
+Repeated constructor values are collapsed at their first occurrence.
+"""
+struct VectorContentLattice{T} <: AbstractLattice
+    value::Vector{T}
+
+    function VectorContentLattice{T}(values) where {T}
+        normalized = T[]
+        for item in values
+            item in normalized || push!(normalized, item)
+        end
+        new{T}(normalized)
+    end
+end
+
+VectorContentLattice(values) = begin
+    collected = collect(values)
+    VectorContentLattice{eltype(collected)}(collected)
+end
+
+function join(left::VectorContentLattice{T}, right::VectorContentLattice{T}) where {T}
+    result = copy(left.value)
+    for item in right.value
+        item in result || push!(result, item)
+    end
+    VectorContentLattice{T}(result)
+end
+
+meet(left::VectorContentLattice{T}, right::VectorContentLattice{T}) where {T} =
+    VectorContentLattice{T}(item for item in left.value if item in right.value)
+
+Base.:(==)(left::VectorContentLattice, right::VectorContentLattice) =
+    length(left) == length(right) && all(item in right for item in left)
+Base.length(value::VectorContentLattice) = length(value.value)
+Base.in(item, value::VectorContentLattice) = in(item, value.value)
+Base.iterate(value::VectorContentLattice, state...) = iterate(value.value, state...)
+Base.getindex(value::VectorContentLattice, index::Integer) = value.value[index]
+Base.eltype(::Type{VectorContentLattice{T}}) where {T} = T
 
 """
     OptionalLattice(value)

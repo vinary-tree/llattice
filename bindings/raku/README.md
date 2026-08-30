@@ -2,8 +2,8 @@
 
 `LLattice` supplies lawful lattice values and customer-implementable Vinary
 Tree providers in idiomatic Raku. Numeric max/min, Boolean, finite-set, and
-optional lattices are included, along with finite law validation and bounded
-NativeCall batch operations.
+vector-content, and optional lattices are included, along with finite law
+validation and bounded NativeCall batch operations.
 
 ## Install
 
@@ -28,6 +28,11 @@ validate-laws(@values);
 my $permissions = FiniteSetLattice.new(value => set(<read write>));
 say $permissions.elems;
 say 'read' ~~ $permissions;
+
+my $pipeline = VectorContentLattice.new(value => [<parse analyze>]);
+my $extension = VectorContentLattice.new(value => [<analyze publish>]);
+say $pipeline.join($extension).list; # parse analyze publish
+say equivalent($pipeline, VectorContentLattice.new(value => [<analyze parse>]));
 ```
 
 ## Expose a custom value
