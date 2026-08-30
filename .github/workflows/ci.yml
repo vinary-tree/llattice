@@ -46,7 +46,12 @@ jobs:
       - name: Reject unchecked proof escapes
         run: make -C proofs/coq proof-check
       - name: Build the Rocq proofs
-        run: make -C proofs/coq
+        # GitHub's root container user does not inherit the image's opam-switch
+        # PATH. Execute inside the pinned switch explicitly so coq_makefile and
+        # the Rocq tools resolve from the digest-pinned image.
+        run: >-
+          opam exec --root=/home/coq/.opam --switch="$COMPILER" --
+          make -C proofs/coq
 
   julia:
     name: Julia lattice values and providers
