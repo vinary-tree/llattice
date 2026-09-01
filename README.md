@@ -161,6 +161,29 @@ impl Lattice for Version {
 assert_eq!(Version(7).join(&Version(4)), Version(7));
 ```
 
+### Julia and Raku
+
+The repository also contains natural Julia and Raku packages. They implement
+the same lattice laws and can expose customer-defined values through the shared
+Vinary Tree resource ABI without adding an FFI dependency to the Rust crate.
+
+```julia
+using LLattice
+@assert join(MaxMin(3), MaxMin(8)) == MaxMin(8)
+@assert validate_laws(MaxMin.([1, 2, 3]))
+```
+
+```raku
+use LLattice;
+my $left = FiniteSetLattice.new(value => set(<read write>));
+my $right = FiniteSetLattice.new(value => set(<write admin>));
+say $left.join($right).value;
+```
+
+See the [foreign-language architecture and usage guides](docs/bindings/README.md)
+for installation, custom providers, stable encodings, ownership, threading,
+security, and bounded batch operations.
+
 ---
 
 ## Use cases
@@ -213,11 +236,12 @@ Rust's orphan rule means a trait can only be implemented for a foreign type by t
 ## Documentation
 
 In-depth documentation lives under [**`docs/`**](docs/README.md) — a guideline-driven suite with theory,
-design, guides, and engineering tracks, plus 19 fully-coloured diagrams rendered from committed sources.
+design, guides, language bindings, and engineering tracks, plus 20 fully-coloured diagrams rendered from committed sources.
 
 - **Theory** — [order theory](docs/theory/01-order-theory.md) · [lattices & the four laws](docs/theory/02-semilattices-lattices.md) · [lawfulness matrix & proofs](docs/theory/03-lawfulness-and-proofs.md) · [the semiring bridge](docs/theory/04-semiring-bridge.md)
 - **Design** — [architecture](docs/design/01-architecture.md) · [the orphan rule](docs/design/02-orphan-rule.md) · [per-impl semantics](docs/design/03-semantics.md) · [ADRs](docs/design/adr/)
 - **Guides** — [quickstart](docs/guides/01-quickstart.md) · [implementing `Lattice`](docs/guides/02-implementing-lattice.md) · [CRDT cookbook](docs/guides/03-crdt-cookbook.md) · [fixpoints & analysis](docs/guides/04-fixpoints-and-analysis.md)
+- **Language bindings** — [architecture](docs/bindings/README.md) · [Julia](docs/bindings/julia.md) · [Raku](docs/bindings/raku.md) · [performance](docs/bindings/performance.md) · [capability matrix](docs/bindings/completeness-matrix.tsv)
 - **Engineering** — [testing](docs/engineering/01-testing.md) · [performance](docs/engineering/02-performance.md) · [security](docs/engineering/03-security.md)
 - **Reference** — [glossary](docs/GLOSSARY.md) · [diagram catalog](docs/diagrams/README.md) · [changelog](CHANGELOG.md)
 

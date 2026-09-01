@@ -116,27 +116,35 @@ shared leaf gives the family one trait, one set of impls, and one meaning of `jo
 The leaf position is enforced by having **zero dependencies** (`[dependencies]` in `Cargo.toml` is empty) and
 importing nothing beyond `std`. This is a load-bearing invariant: see [ADR-0001](adr/0001-extract-llattice-leaf-crate.md).
 
-### 4.1 Deliberately outside the `vinary-tree` resource ABI
+### 4.1 Compile-time trait and run-time provider are separate layers
 
-The family's crates share a second seam beyond this trait: the **`vinary-tree-interop` resource ABI**
-(`VtResource`, `vt.dictionary.v1`, `vt.scalar-wfst.1`) that lets `libdictenstein`, `liblevenshtein`,
-`lling-llang`, and `duallity` hand typed handles across a C boundary at run time. `llattice` is **not** part
-of that ABI, by design: a `Lattice` is a *compile-time* Rust trait resolved by monomorphization, and its
-`join`/`meet` values never cross the `vt` boundary as a foreign resource — a lattice element is always an
-owned Rust value on one side of the FFI, never a two-word retained handle. Consequently:
+The family's crates share a second seam beyond this trait: the versioned
+**`vinary-tree-interop` resource ABI**. The native `Lattice` trait remains a
+compile-time Rust abstraction resolved by monomorphization; `llattice` still
+has no runtime dependency and exports no C symbols. Foreign runtimes instead
+exchange an immutable `VtResource` that negotiates the distinct
+`vt.lattice.val.1` capability. That capability carries owned values and the
+operations `join`, `meet`, equality, stable encoding, diagnostics, and bounded
+batch folds.
 
-- there is no `llattice` C ABI, no `VtResource` view of a lattice, and nothing to marshal;
-- `llattice` needs no ABI-layer formal verification (retain/release, paging, status mapping) — its only
-  correctness obligations are the **algebra laws**, mechanized in
-  [`proofs/coq/LatticeLaws.v`](../../proofs/coq/LatticeLaws.v) and
-  [`proofs/coq/FloatCaveat.v`](../../proofs/coq/FloatCaveat.v) and executably mirrored by
-  [`tests/lattice_laws.rs`](../../tests/lattice_laws.rs);
-- the family repositories that DO cross the ABI (see their `docs/**/resource-abi*` and
-  `vinary-tree-interop`) consume `llattice` purely as a source-level dependency — a `HashSet<T>` they merge is
-  merged with *this* crate's `join`, but the merged value is theirs to own and, if they choose, to expose over
-  their own ABI.
+This split preserves both important properties:
 
-In short: `llattice` is the family's shared *vocabulary*, not part of its *wire protocol*.
+- Native Rust keeps a zero-cost, statically dispatched trait and the leaf crate
+  remains dependency-free.
+- Julia, Raku, and future supported runtimes can implement lattice values
+  without pretending a garbage-collected object is a Rust `Clone + Send + Sync`
+  value.
+- ABI ownership, callback containment, thread declarations, and batching live
+  in `vinary-tree-interop`, where all family resources share one protocol.
+- The Julia and Raku packages in this repository provide the ergonomic host
+  types and adapters. They depend on their language's `vinary-tree-interop`
+  package; the Rust crate does not.
+
+The boundary is therefore between *a mathematical interface* and *one portable
+runtime representation of values implementing that interface*, not between
+llattice and interoperability. [ADR-0003](adr/0003-host-lattice-provider.md)
+records the decision, and the [binding architecture](../bindings/README.md)
+defines its ownership and concurrency contracts.
 
 ---
 
@@ -160,4 +168,5 @@ From `Cargo.toml`:
 - The coherence argument in full: **[02 — The orphan rule](02-orphan-rule.md)**.
 - The per-impl behavioural contract: **[03 — Semantics](03-semantics.md)**.
 - The recorded decisions: **[ADR-0001](adr/0001-extract-llattice-leaf-crate.md)**,
-  **[ADR-0002](adr/0002-semiring-bridge-lives-in-lling-llang.md)**.
+  **[ADR-0002](adr/0002-semiring-bridge-lives-in-lling-llang.md)**, and
+  **[ADR-0003](adr/0003-host-lattice-provider.md)**.

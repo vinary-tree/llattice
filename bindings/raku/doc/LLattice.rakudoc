@@ -1,0 +1,86 @@
+=begin pod
+
+=NAME LLattice
+
+=SUBTITLE Lawful lattice values and host-implementable Vinary Tree providers
+
+=head1 SYNOPSIS
+
+=begin code :lang<raku>
+use LLattice;
+
+my $low = MaxMin.new(value => 3);
+my $high = MaxMin.new(value => 8);
+say $low.join($high).value;
+validate-laws([$low, $high]);
+=end code
+
+=head1 TYPES
+
+=head2 Lattice
+
+The exported role requires C<join> and C<meet>. Both accept another value from
+the same lattice and return a new immutable value.
+
+=head2 MaxMin
+
+A numeric lattice in the ordinary total order. C<join> is maximum and C<meet>
+is minimum.
+
+=head2 BooleanLattice
+
+The two-element lattice. C<join> is disjunction; C<meet> is conjunction.
+
+=head2 FiniteSetLattice
+
+The finite powerset lattice. C<join> is set union and C<meet> is set
+intersection. It does C<Iterable>, reports C<elems>, and supports set-style
+smart matching.
+
+=head2 OptionalLattice
+
+Lifts another lattice with an undefined bottom value. Join keeps a defined
+operand; meet is defined only when both operands are defined.
+
+=head1 ROUTINES
+
+=head2 validate-laws
+
+=begin code :lang<raku>
+validate-laws(@finite-witnesses --> Bool)
+=end code
+
+Exhaustively checks associativity, commutativity, idempotence, and absorption
+over a non-empty finite witness set. It dies with the first counterexample.
+
+=head2 provider
+
+=begin code :lang<raku>
+provider(
+    Lattice:D $value,
+    Str:D :$domain-id!,
+    :&encode!,
+    :&decode,
+    Bool:D :$parallel = False,
+    --> LatticeValue:D
+)
+=end code
+
+Creates an owned resource provider. The domain identifier must encode to
+exactly 16 ASCII bytes. C<encode> returns canonical bytes; an optional decoder
+allows operations with another provider of the same domain. Callbacks are
+synchronous and confined to Rakudo-owned threads.
+
+=head2 value
+
+Returns the Raku value behind an open provider created by this distribution.
+It rejects foreign providers.
+
+=head1 OWNERSHIP
+
+Call C<.close> on providers and every result returned by C<.join>, C<.meet>,
+C<.join-many>, or C<.meet-many>. Destruction is a fallback only. Exceptions are
+contained before native control returns and surface as typed interop failures;
+C<.diagnostic> retrieves the provider message.
+
+=end pod

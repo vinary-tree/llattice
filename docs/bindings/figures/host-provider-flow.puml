@@ -1,0 +1,31 @@
+@startuml
+skinparam backgroundColor #F8FAFC
+skinparam shadowing false
+skinparam ArrowColor #334155
+skinparam defaultFontName SansSerif
+skinparam rectangle {
+  BorderColor #334155
+  FontColor #0F172A
+}
+
+rectangle "Julia or Raku value\njoin · meet · encode" as Host #DBEAFE
+rectangle "Language provider\nroot callbacks · contain exceptions" as Provider #EDE9FE
+rectangle "VtResource\nretain · release · query" as Resource #DCFCE7
+rectangle "vt.lattice.val.1\njoin · meet · equal · bytes · batches" as Capability #FEF3C7
+rectangle "Vinary Tree consumer\nlock-free callback boundary" as Consumer #FCE7F3
+rectangle "New owned result" as Result #CCFBF1
+
+Host --> Provider : immutable host state
+Provider --> Resource : create owned handle
+Resource --> Capability : negotiate version 1
+Consumer --> Capability : synchronous operation
+Capability --> Provider : callback on attached thread
+Provider --> Result : return independent resource
+Result --> Consumer
+Consumer --> Resource : close / release
+
+note bottom of Capability
+  Domain ID binds algebra and encoding.
+  Batch folds amortize boundary cost.
+end note
+@enduml

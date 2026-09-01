@@ -1,5 +1,11 @@
 # ── Rust build output ──────────────────────────────────────────────────────────
 /target
+/lib/.precomp/
+/bindings/raku/lib/.precomp/
+/bindings/raku/resources/libraries/
+/bindings/julia/LLattice/docs/build/
+/bindings/julia/LLattice/docs/Manifest.toml
+/bindings/julia/**/target/
 
 # ── LaTeX / TikZ intermediates ─────────────────────────────────────────────────
 # docs/diagrams/Makefile renders *.tex through the DVI route (latex → dvisvgm) and

@@ -15,3 +15,7 @@ readme = "README.md"
 
 [dev-dependencies]
 proptest = "1"
+
+# Keep this standalone repository from being captured by an unrelated parent
+# workspace when it is checked out beneath another Rust project for validation.
+[workspace]
