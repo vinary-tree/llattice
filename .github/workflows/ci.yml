@@ -28,6 +28,8 @@ jobs:
         run: python3 scripts/check-lattice-invariants.py
       - name: Release-ref authority
         run: python3 scripts/check-release-ref.py --self-test
+      - name: Package metadata authority
+        run: python3 scripts/check-package-metadata.py
 
   proofs:
     name: Lattice-law proofs

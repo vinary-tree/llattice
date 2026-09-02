@@ -1,0 +1,6 @@
+{
+  "component": "llattice",
+  "version": "0.1.0",
+  "summary": "Lawful lattice algebra for composable native and host-language systems",
+  "description": "A dependency-free Rust lattice trait with lawful built-ins and host-language provider adapters for shared join and meet semantics."
+}

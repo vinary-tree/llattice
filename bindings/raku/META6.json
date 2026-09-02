@@ -1,7 +1,7 @@
 {
   "name": "LLattice",
   "version": "0.1.0",
-  "description": "Lawful lattice values and host-implementable Vinary Tree providers for Raku",
+  "description": "A dependency-free Rust lattice trait with lawful built-ins and host-language provider adapters for shared join and meet semantics.",
   "auth": "zef:vinary-tree",
   "api": "1",
   "license": "Apache-2.0",
