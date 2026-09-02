@@ -30,8 +30,9 @@ validate_laws(MaxMin.([1, 2, 3]))
 ```
 
 `FiniteSetLattice` implements `iterate`, `length`, and `in`, so it participates
-in ordinary Julia collection code. `OptionalLattice{T}(nothing)` adjoins a new
-bottom element to lattice `T`.
+in ordinary Julia collection code. An `OptionalLattice` parameterized by `T`
+and containing Julia's `nothing` value adjoins a new bottom element to lattice
+`T`.
 
 ## Implement a custom lattice
 

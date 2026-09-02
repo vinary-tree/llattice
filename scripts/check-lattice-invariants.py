@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the llattice lattice invariant registry (proofs/doc/abi-invariants.tsv).
+"""Validate the llattice invariant registry (proofs/doc/lattice-invariants.tsv).
 
 The registry is the traceability spine of the lattice-law verification
 program: every invariant row names its formal home (spec_path/spec_name), its
@@ -153,9 +153,7 @@ def main() -> int:
                     "proof strength, not test-pinned"
                 )
             if row["test_name"] != "-":
-                failures.add(
-                    f"{row_id}: formal-only rows must set test_name to '-'"
-                )
+                failures.add(f"{row_id}: formal-only rows must set test_name to '-'")
         else:
             test_backed_ids.add(row_id)
             test_path = ROOT / row["test_path"]
@@ -189,9 +187,7 @@ def main() -> int:
         )
     # Every test-backed row must be reachable from a hook (formal-only exempt).
     for invariant_id in sorted(test_backed_ids - hooked):
-        failures.add(
-            f"test-backed invariant {invariant_id} has no INVARIANT-HOOK"
-        )
+        failures.add(f"test-backed invariant {invariant_id} has no INVARIANT-HOOK")
 
     if failures.messages:
         print(f"check-lattice-invariants: {len(failures.messages)} failure(s)")

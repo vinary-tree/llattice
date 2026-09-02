@@ -1,10 +1,12 @@
+---
 name: Release
 
-on:
+'on':
   workflow_dispatch:
     inputs:
       registry:
-        description: Validate immutable source or publish exactly one destination
+        description: >-
+          Validate immutable source or publish exactly one destination
         required: true
         default: validate-only
         type: choice
@@ -46,7 +48,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
-        with: { persist-credentials: false }
+        with: {persist-credentials: false}
       - uses: dtolnay/rust-toolchain@1.95
         with:
           components: clippy, rustfmt
@@ -54,42 +56,62 @@ jobs:
       - run: cargo clippy --locked --all-targets -- -D warnings
       - run: cargo test --locked --all-targets
       - run: cargo test --locked --doc
+      - run: cargo check --locked --lib --no-default-features
       - run: python3 scripts/check-lattice-invariants.py
       - run: python3 scripts/check-release-ref.py --self-test
+
+  msrv:
+    name: Rust 1.70 feature matrix
+    needs: contract
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with: {persist-credentials: false}
+      - uses: dtolnay/rust-toolchain@1.70.0
+      - run: cargo check --locked --lib --no-default-features
+      - run: cargo check --locked --lib
 
   proofs:
     name: Mechanized lattice laws
     needs: contract
     runs-on: ubuntu-24.04
     # Keep release proofs byte-for-byte aligned with CI's Rocq environment.
-    container: rocq/rocq-prover:9.1.1@sha256:b85a80a11bb65c7c843f91c7cbcce282f22ee397c9ca42f123d568ab6cef68b0
+    container:
+      # yamllint disable-line rule:line-length
+      image: rocq/rocq-prover:9.1.1@sha256:b85a80a11bb65c7c843f91c7cbcce282f22ee397c9ca42f123d568ab6cef68b0
+      options: --user root
     steps:
       - uses: actions/checkout@v6
-        with: { persist-credentials: false }
+        with: {persist-credentials: false}
       - name: Reject unchecked proof escapes
         run: make -C proofs/coq proof-check
       - name: Build the Rocq proofs
-        run: make -C proofs/coq
+        run: >-
+          opam exec --root=/home/rocq/.opam --switch="$COMPILER" --
+          make -C proofs/coq
 
   package:
     name: Reproducible crate candidate
-    needs: [verify, proofs]
+    needs: [verify, msrv, proofs]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
-        with: { persist-credentials: false }
+        with: {persist-credentials: false}
       - uses: dtolnay/rust-toolchain@1.95
       - name: Build and inspect the crate archive
         shell: bash
         run: |
           set -euo pipefail
-          version=$(python3 -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["package"]["version"])')
+          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -n1)
           cargo package --locked
           mkdir -p dist
           cp "target/package/llattice-${version}.crate" dist/
           cargo package --locked --list >dist/PACKAGE-CONTENTS.txt
-          (cd dist && sha256sum "llattice-${version}.crate" PACKAGE-CONTENTS.txt >SHA256SUMS)
-          (cd dist && sha256sum --check SHA256SUMS)
+          pushd dist >/dev/null
+          sha256sum "llattice-${version}.crate" \
+            PACKAGE-CONTENTS.txt >SHA256SUMS
+          sha256sum --check SHA256SUMS
+          popd >/dev/null
       - uses: actions/upload-artifact@v7
         with:
           name: llattice-crate
@@ -99,7 +121,10 @@ jobs:
   github-release:
     name: Publish checksummed GitHub release
     needs: package
-    if: github.event_name == 'workflow_dispatch' && github.ref_type == 'tag' && inputs.registry == 'github-release'
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.ref_type == 'tag' &&
+      inputs.registry == 'github-release'
     runs-on: ubuntu-24.04
     environment: github-release
     permissions:
@@ -121,7 +146,8 @@ jobs:
           set -euo pipefail
           (cd dist && sha256sum --check SHA256SUMS)
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            echo "GitHub release $GITHUB_REF_NAME already exists; refusing to overwrite it" >&2
+            printf 'GitHub release %s already exists; ' "$GITHUB_REF_NAME" >&2
+            printf '%s\n' 'refusing to overwrite it' >&2
             exit 1
           fi
           version=${GITHUB_REF_NAME#v}
@@ -136,7 +162,10 @@ jobs:
   crates-io:
     name: Publish crates.io
     needs: package
-    if: github.event_name == 'workflow_dispatch' && github.ref_type == 'tag' && inputs.registry == 'crates-io'
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.ref_type == 'tag' &&
+      inputs.registry == 'crates-io'
     runs-on: ubuntu-24.04
     environment: crates-io
     permissions:
@@ -144,21 +173,24 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v6
-        with: { persist-credentials: false }
+        with: {persist-credentials: false}
       - uses: dtolnay/rust-toolchain@1.95
       - name: Reject an already-published version
         shell: bash
         run: |
           set -euo pipefail
-          version=$(python3 -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["package"]["version"])')
+          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -n1)
           status=$(curl --retry 4 --retry-all-errors --silent --show-error \
-            --user-agent 'llattice-release/1.0 (https://github.com/vinary-tree/llattice)' \
-            --output "$RUNNER_TEMP/crates-version.json" --write-out '%{http_code}' \
+            --user-agent \
+            'llattice-release/1.0 (https://github.com/vinary-tree/llattice)' \
+            --output "$RUNNER_TEMP/crates-version.json" \
+            --write-out '%{http_code}' \
             "https://crates.io/api/v1/crates/llattice/$version")
           case "$status" in
             404) ;;
             200)
-              echo "llattice $version is already public; refusing to republish" >&2
+              printf '%s\n' \
+                "llattice $version is already public; refusing to republish" >&2
               exit 1
               ;;
             *)

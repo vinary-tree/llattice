@@ -1,8 +1,6 @@
-// Control flow of a property-based law audit: generate a triple (a, b, c), check the four lattice laws
-// (each in its join form AND its meet dual), and either accept the impl as lawful or shrink & report a
-// counterexample. This is the pipeline behind the proptest / exhaustive checkers in engineering/01.
-// Render:  dot -Tsvg law-audit-flow.dot -o law-audit-flow.svg   Tool: Graphviz (flowchart).
 digraph law_audit {
+    // Generate (a,b,c), check each law and dual, then accept or shrink a counterexample.
+    // This is the property-test pipeline documented in engineering/01-testing.md.
     bgcolor = "white";
     rankdir = TB;
     nodesep = 0.40;

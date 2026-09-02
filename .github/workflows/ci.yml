@@ -1,6 +1,7 @@
+---
 name: CI
 
-on:
+'on':
   push:
   pull_request:
 
@@ -20,6 +21,8 @@ jobs:
         run: cargo clippy --all-targets -- -D warnings
       - name: Test (incl. the lattice-law harness)
         run: cargo test --all-targets
+      - name: Check the no-std core
+        run: cargo check --locked --lib --no-default-features
       - name: Doctests
         run: cargo test --doc
       # python3 is present on ubuntu-latest; the Coq container job builds the
@@ -28,6 +31,15 @@ jobs:
         run: python3 scripts/check-lattice-invariants.py
       - name: Release-ref authority
         run: python3 scripts/check-release-ref.py --self-test
+
+  msrv:
+    name: Rust 1.70 feature matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.70.0
+      - run: cargo check --locked --lib --no-default-features
+      - run: cargo check --locked --lib
 
   proofs:
     name: Lattice-law proofs
@@ -69,7 +81,7 @@ jobs:
             "$candidate" >/dev/null 2>&1; then
             echo "ref=$candidate" >>"$GITHUB_OUTPUT"
           else
-            echo "ref=main" >>"$GITHUB_OUTPUT"
+            echo "ref=master" >>"$GITHUB_OUTPUT"
           fi
       - uses: actions/checkout@v4
         with:
@@ -77,7 +89,7 @@ jobs:
           ref: ${{ steps.interop-ref.outputs.ref }}
           path: target/vinary-tree-interop
       - uses: julia-actions/setup-julia@v2
-        with: { version: '1.10' }
+        with: {version: '1.10'}
       - name: Test type-stable values and host providers
         shell: bash
         run: |
@@ -132,7 +144,7 @@ jobs:
             "$candidate" >/dev/null 2>&1; then
             echo "ref=$candidate" >>"$GITHUB_OUTPUT"
           else
-            echo "ref=main" >>"$GITHUB_OUTPUT"
+            echo "ref=master" >>"$GITHUB_OUTPUT"
           fi
       - uses: actions/checkout@v4
         with:
@@ -149,8 +161,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          zef build ./bindings/raku 2>&1 | tee "$RUNNER_TEMP/llattice-raku-build.log"
-          zef test ./bindings/raku 2>&1 | tee "$RUNNER_TEMP/llattice-raku-test.log"
+          zef build ./bindings/raku 2>&1 \
+            | tee "$RUNNER_TEMP/llattice-raku-build.log"
+          zef test ./bindings/raku 2>&1 \
+            | tee "$RUNNER_TEMP/llattice-raku-test.log"
       - name: Smoke benchmark pairwise and batch boundaries
         env:
           LLATTICE_BENCH_ITERATIONS: '1000'

@@ -1,11 +1,11 @@
-# ADR-0003 — Put dynamic lattice values in the shared resource ABI
+# ADR-0004 — Put dynamic lattice values in the shared resource ABI
 
 - **Status:** Accepted
 - **Date:** 2026-08-30
 - **Deciders:** Vinary Tree maintainers
 - **Related:** [architecture](../01-architecture.md),
   [binding architecture](../../bindings/README.md),
-  [`vinary-tree-interop` ABI reference](https://github.com/vinary-tree/vinary-tree-interop/blob/main/docs/abi-reference.md)
+  [`vinary-tree-interop` ABI reference](https://github.com/vinary-tree/vinary-tree-interop/blob/master/docs/abi-reference.md)
 
 ## Context
 
@@ -64,9 +64,11 @@ folds for workloads large enough for boundary overhead to matter.
 
 - **Add `vinary-tree-interop` as a Rust dependency.** Rejected because it would
   violate the leaf invariant and tax native users who do not use an FFI.
-- **Store foreign handles in `Lattice`.** Rejected because the trait requires
-  owned `Clone + Send + Sync` values and because runtime thread rules cannot be
-  expressed by those bounds alone.
+- **Store foreign handles in `Lattice`.** Rejected because garbage-collector
+  rooting, resource ownership, callback containment, and runtime thread rules
+  are not algebraic capabilities. The native trait remains `Clone +
+  PartialEq`; consumers add `Send + Sync` only at a concrete parallel
+  scheduling boundary.
 - **One handwritten ABI per language.** Rejected because layouts, ownership,
   and capability identities would drift.
 - **Process-global memoization.** Rejected because lattice results are

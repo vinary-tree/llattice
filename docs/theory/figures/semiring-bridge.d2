@@ -17,7 +17,7 @@ sr -> meet: "⊗  ↛  ⊓   ✗  (⊗ = path composition, NOT meet)" {
   style: { stroke: "#B91C1C"; stroke-dash: 4; stroke-width: 2 }
 }
 
-bridge: "lling-llang owns IdempotentSemiring\nand provides the Lattice impl (exposes ⊕ as join).\nllattice stays a pure, semiring-free leaf." {
+bridge: "lling-llang owns IdempotentSemiring\nand exposes ⊕ through JoinSemilattice, 0̄ through Bottom.\nIt makes no meet claim from ⊗; llattice stays semiring-free." {
   style: { fill: "#C4B5FD"; stroke: "#5B21B6" }
 }
 sr -> bridge: "defined in" { style.stroke: "#5B21B6" }

@@ -1,13 +1,13 @@
 # The unifying isomorphism 𝒫(U) ≅ 2^U: a subset of U is the same datum as a U-indexed tuple of bits,
-# which is the same as a function U → 2. This ties together three built-in impls — bool (the factor 2),
-# Vec<bool>/version-vector (the product 2^U), and HashSet (the powerset 𝒫(U)).
+# which is the same as a function U → 2. This ties together the built-in bool
+# and HashSet domains with external version-vector/bitset product domains.
 # Render:  d2 powerset-iso.d2 powerset-iso.svg     Tool: D2 (uml_architecture, mapping diagram).
 direction: right
 
 two:  "2  =  bool\n{ false ⊑ true }\n(the two-element Boolean lattice)" {
   style: { fill: "#DBEAFE"; stroke: "#1E3A8A" }
 }
-prod: "2^U  =  U-indexed tuple of bits\n(Vec<bool> / version vector / bitset)" {
+prod: "2^U  =  U-indexed tuple of bits\n(version vector / canonical bitset domain)" {
   style: { fill: "#BFDBFE"; stroke: "#1E3A8A" }
 }
 pset: "𝒫(U)  =  HashSet<T>\n(subsets of U ordered by ⊆)" {

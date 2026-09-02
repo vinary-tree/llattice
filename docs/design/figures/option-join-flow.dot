@@ -1,7 +1,7 @@
-// Control flow of Option<T>::join — the four-way match that adjoins None as bottom.
-//   join: None ⊔ x = x (identity);  Some(a) ⊔ Some(b) = Some(a ⊔ b) (recurse into T).
-// Render:  dot -Tsvg option-join-flow.dot -o option-join-flow.svg   Tool: Graphviz (flowchart).
 digraph option_join {
+    // Control flow of Option<T>::join — the four-way match that adjoins None as bottom.
+    // join: None ⊔ x = x; Some(a) ⊔ Some(b) = Some(a ⊔ b).
+    // Render with Graphviz: dot -Tsvg option-join-flow.dot -o option-join-flow.svg.
     bgcolor = "white";
     rankdir = TB;
     nodesep = 0.5;

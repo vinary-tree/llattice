@@ -9,13 +9,13 @@ separate, versioned `vt.lattice.val.1` capability from
 ## Vocabulary and laws
 
 A **lattice** is a partially ordered set in which every pair has a least upper
-bound, called **join** and written $`\sqcup`$, and a greatest lower bound,
-called **meet** and written $`\sqcap`$. A provider must implement operations
+bound, called **join** and written $`\vee`$, and a greatest lower bound,
+called **meet** and written $`\wedge`$. A provider must implement operations
 that satisfy associativity, commutativity, idempotence, and absorption. For
 example, join associativity is:
 
 ```math
-(a \sqcup b) \sqcup c = a \sqcup (b \sqcup c).
+(a \vee b) \vee c = a \vee (b \vee c).
 ```
 
 The package law checkers exhaustively test a finite witness set. Passing a
@@ -42,8 +42,8 @@ For receiver $`x`$ and operands $`y_1, \ldots, y_n`$, `join_many` computes the
 associative left fold:
 
 ```math
-\operatorname{join\_many}(x,[y_1,\ldots,y_n])
-= (((x \sqcup y_1) \sqcup y_2) \cdots \sqcup y_n).
+\mathrm{join\_many}(x,[y_1,\ldots,y_n])
+= (((x \vee y_1) \vee y_2) \cdots \vee y_n).
 ```
 
 The empty fold returns an independent retain of $`x`$. `meet_many` is the dual

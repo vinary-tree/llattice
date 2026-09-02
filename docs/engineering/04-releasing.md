@@ -36,8 +36,9 @@ Create two GitHub environments in `vinary-tree/llattice`:
   reviewer;
 - `github-release`, with the same tag and reviewer restrictions.
 
-Then open <https://crates.io/crates/llattice/settings> and configure this exact
-GitHub Actions trusted publisher:
+After the first manual publication, open the authenticated settings page for
+`llattice` on crates.io and configure this exact GitHub Actions trusted
+publisher:
 
 | Field | Value |
 |---|---|
@@ -53,14 +54,17 @@ long-lived crates.io token.
 
 Trusted publishing cannot bootstrap a crate that has never been published.
 `llattice 0.1.0` is already public, so no bootstrap token is required here.
-The current source must not republish `0.1.0`; the workflow's registry
-preflight rejects it.
+Version 0.2 is the first layered API; the workflow's registry preflight rejects
+every version already present in the registry.
 
 ## Prepare and prove a candidate
 
 1. Choose an unused semantic version and update `Cargo.toml`, `Cargo.lock`, and
    `CHANGELOG.md` together.
-2. Run the complete local gate:
+2. Run the complete local gate. Wrap Cargo, proof, package, and documentation
+   commands in a user `systemd-run --scope` with explicit RSS, no-swap, CPU,
+   task, and one-job limits; keep `TMPDIR`, targets, and logs under repository
+   `target/`.
 
    ```bash
    cargo fmt --all -- --check
@@ -127,8 +131,9 @@ republishing. Once the exact version resolves, prove it outside every family
 worktree:
 
 ```bash
-CHECK_ROOT=$(mktemp -d)
-cd "$CHECK_ROOT"
+READBACK_ROOT="$PWD/target/release-readback"
+mkdir -p "$READBACK_ROOT"
+cd "$READBACK_ROOT"
 cargo init --bin --name llattice_readback
 cargo add llattice@=PACKAGE_VERSION
 cargo check --locked
@@ -138,7 +143,7 @@ cargo run --locked
 Replace the generated program with:
 
 ```rust
-use llattice::Lattice;
+use llattice::{JoinSemilattice, MeetSemilattice};
 
 fn main() {
     assert_eq!(5_u32.join(&3), 5);
@@ -163,7 +168,8 @@ ledger or changelog entry. Remove the temporary consumer afterward.
 - Accepted but defective public bytes: yank the version, document the reason,
   repair source, and publish a new version. A yank does not delete history.
 
-The protocol follows crates.io's
-[Trusted Publishing documentation](https://crates.io/docs/trusted-publishing)
+The protocol follows the crates.io team's
+[trusted-publishing announcement](https://blog.rust-lang.org/2025/07/11/crates-io-development-update-2025-07/),
+the [accepted RFC](https://github.com/rust-lang/rfcs/blob/master/text/3691-trusted-publishing-cratesio.md),
 and the official
 [`crates-io-auth-action`](https://github.com/rust-lang/crates-io-auth-action).

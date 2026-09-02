@@ -1,6 +1,6 @@
 # Semilattices and Lattices — the two operations and their laws
 
-> **Prerequisite:** [01 — Order theory](01-order-theory.md). We freely use poset, $`\sqsubseteq`$, $`\lessdot`$, $`\bot`$, $`\top`$,
+> **Prerequisite:** [01 — Order theory](01-order-theory.md). We freely use poset, $`\preceq`$, $`\prec`$, $`\perp`$, $`\mathrm{top}`$,
 > and Hasse diagrams from there. All symbols are in the [glossary](../GLOSSARY.md).
 
 This document promotes a poset to a **lattice** by demanding least upper bounds and greatest lower bounds,
@@ -12,43 +12,45 @@ Boolean) that the built-in impls realise.
 
 ## 1. Semilattices and lattices
 
-Let $`(S, \sqsubseteq)`$ be a poset.
+Let $`(S, \preceq)`$ be a poset.
 
-- It is a **join-semilattice** if every pair $`\{a, b\}`$ has a least upper bound $`a \sqcup b`$ (the **join**).
-- It is a **meet-semilattice** if every pair $`\{a, b\}`$ has a greatest lower bound $`a \sqcap b`$ (the **meet**).
-- It is a **lattice** if it is *both*: every pair has a $`\sqcup`$ *and* a $`\sqcap`$.
+- It is a **join-semilattice** if every pair $`\{a, b\}`$ has a least upper bound $`a \vee b`$ (the **join**).
+- It is a **meet-semilattice** if every pair $`\{a, b\}`$ has a greatest lower bound $`a \wedge b`$ (the **meet**).
+- It is a **lattice** if it is *both*: every pair has a $`\vee`$ *and* a $`\wedge`$.
 
-The `Lattice` trait asks for both methods, so it targets full lattices — but two of its impls (`Vec`, and any
-non-NaN-free `f64` usage) only honour the join half cleanly; that nuance is the subject of
-[document 03](03-lawfulness-and-proofs.md).
+The Rust API mirrors this hierarchy directly. `JoinSemilattice` and
+`MeetSemilattice` are independent capabilities; the explicit `Lattice` marker
+promises both plus absorption. Raw `Vec` and floating-point candidates are
+excluded because their structural values cannot satisfy these laws
+unconditionally; [document 03](03-lawfulness-and-proofs.md) proves the boundary.
 
 The defining geometry is worth fixing in the mind's eye. For any two elements $`a`$ and $`b`$:
 
 ![lub/glb geometry: join sits above both operands, meet below both](figures/lub-glb-geometry.svg)
 
-$`a \sqcup b`$ is the *lowest* element still above both $`a`$ and $`b`$; $`a \sqcap b`$ is the *highest* element still below
+$`a \vee b`$ is the *lowest* element still above both $`a`$ and $`b`$; $`a \wedge b`$ is the *highest* element still below
 both. The mnemonic — used in every diagram in this repository — is **green climbs up (join), amber descends
 (meet)**.
 
 The smallest non-trivial lattice is `bool`:
 
-![the two-element lattice false ⊑ true](figures/bool-lattice.svg)
+![the two-element lattice false \preceq true](figures/bool-lattice.svg)
 
-Here $`\sqcup = \lor`$ (logical OR), $`\sqcap = \land`$ (logical AND), $`\bot = \text{false}`$, $`\top = \text{true}`$.
+Here $`\vee = \lor`$ (logical OR), $`\wedge = \land`$ (logical AND), $`\perp = \text{false}`$, $`\mathrm{top} = \text{true}`$.
 
 ---
 
 ## 2. The four laws
 
-$`\sqcup`$ and $`\sqcap`$ are not arbitrary binary operations: as least-upper- and greatest-lower-bound operators they
+$`\vee`$ and $`\wedge`$ are not arbitrary binary operations: as least-upper- and greatest-lower-bound operators they
 *necessarily* satisfy four laws. For all $`a, b, c`$:
 
 | Law | Join form | Meet form |
 |----------------|------------------------------|------------------------------|
-| **Idempotency**   | $`a \sqcup a = a`$ | $`a \sqcap a = a`$ |
-| **Commutativity** | $`a \sqcup b = b \sqcup a`$ | $`a \sqcap b = b \sqcap a`$ |
-| **Associativity** | $`(a \sqcup b) \sqcup c = a \sqcup (b \sqcup c)`$ | $`(a \sqcap b) \sqcap c = a \sqcap (b \sqcap c)`$ |
-| **Absorption**    | $`a \sqcup (a \sqcap b) = a`$ | $`a \sqcap (a \sqcup b) = a`$ |
+| **Idempotency**   | $`a \vee a = a`$ | $`a \wedge a = a`$ |
+| **Commutativity** | $`a \vee b = b \vee a`$ | $`a \wedge b = b \wedge a`$ |
+| **Associativity** | $`(a \vee b) \vee c = a \vee (b \vee c)`$ | $`(a \wedge b) \wedge c = a \wedge (b \wedge c)`$ |
+| **Absorption**    | $`a \vee (a \wedge b) = a`$ | $`a \wedge (a \vee b) = a`$ |
 
 Each row is a dual pair ([01 §4](01-order-theory.md#4-the-duality-principle)), so proving the join form gives
 the meet form for free.
@@ -57,64 +59,64 @@ the meet form for free.
 > the conditions under which *folding a multiset in any order, with any grouping, with repeats, yields one
 > answer*. That is the convergence guarantee CRDTs rely on (see [guides/03](../guides/03-crdt-cookbook.md)):
 >
-> - **Idempotency** $`a \sqcup a = a \implies`$ delivering the same update twice is a no-op (at-least-once delivery is safe).
-> - **Commutativity** $`a \sqcup b = b \sqcup a \implies`$ the arrival order of two updates does not matter.
-> - **Associativity** $`(a \sqcup b) \sqcup c = a \sqcup (b \sqcup c) \implies`$ how a batch is parenthesised does not matter.
+> - **Idempotency** $`a \vee a = a \implies`$ delivering the same update twice is a no-op (at-least-once delivery is safe).
+> - **Commutativity** $`a \vee b = b \vee a \implies`$ the arrival order of two updates does not matter.
+> - **Associativity** $`(a \vee b) \vee c = a \vee (b \vee c) \implies`$ how a batch is parenthesised does not matter.
 >
 > A binary operation that is associative, commutative, and idempotent is *equivalent data* to a
 > join-semilattice — this is the **fundamental theorem of semilattices**, proved next.
 
 ### Lemma (absorption forces compatible domains)
 
-Absorption is what *links* $`\sqcup`$ and $`\sqcap`$. Idempotency, commutativity, and associativity alone describe two
+Absorption is what *links* $`\vee`$ and $`\wedge`$. Idempotency, commutativity, and associativity alone describe two
 independent semilattices; absorption is the axiom that says they order the same set the same way (so that the
-order read off $`\sqcup`$ agrees with the order read off $`\sqcap`$). We use it in §3.
+order read off $`\vee`$ agrees with the order read off $`\wedge`$). We use it in §3.
 
 ---
 
 ## 3. The order/operation bridge
 
-The order $`\sqsubseteq`$ and the operations $`\sqcup`$, $`\sqcap`$ are **two presentations of one structure**. This is the single most
+The order $`\preceq`$ and the operations $`\vee`$, $`\wedge`$ are **two presentations of one structure**. This is the single most
 important theorem in lattice theory and the reason `llattice` can offer *either* view.
 
 ### Theorem (connecting lemma)
 
-Let $`(S, \sqsubseteq)`$ be a lattice with operations $`\sqcup`$, $`\sqcap`$. Then for all $`a, b \in S`$:
+Let $`(S, \preceq)`$ be a lattice with operations $`\vee`$, $`\wedge`$. Then for all $`a, b \in S`$:
 
 ```math
-a \sqsubseteq b \iff a \sqcup b = b \iff a \sqcap b = a
+a \preceq b \iff a \vee b = b \iff a \wedge b = a
 ```
 
-Conversely, given a set $`S`$ with operations $`\sqcup`$, $`\sqcap`$ satisfying the four laws of §2, defining
-$`a \sqsubseteq b :\iff a \sqcup b = b`$ yields a partial order whose least upper bound is $`\sqcup`$ and greatest lower bound is $`\sqcap`$.
+Conversely, given a set $`S`$ with operations $`\vee`$, $`\wedge`$ satisfying the four laws of §2, defining
+$`a \preceq b :\iff a \vee b = b`$ yields a partial order whose least upper bound is $`\vee`$ and greatest lower bound is $`\wedge`$.
 The two constructions are mutually inverse.
 
 ### Proof
 
-**($`\Rightarrow`$, first equivalence.)** Suppose $`a \sqsubseteq b`$. Then $`b`$ is an upper bound of $`\{a, b\}`$ (since $`a \sqsubseteq b`$ and
-$`b \sqsubseteq b`$). Any upper bound $`u`$ of $`\{a, b\}`$ satisfies $`b \sqsubseteq u`$, so $`b`$ is the *least* upper bound, i.e.
-$`a \sqcup b = b`$.
+**($`\Rightarrow`$, first equivalence.)** Suppose $`a \preceq b`$. Then $`b`$ is an upper bound of $`\{a, b\}`$ (since $`a \preceq b`$ and
+$`b \preceq b`$). Any upper bound $`u`$ of $`\{a, b\}`$ satisfies $`b \preceq u`$, so $`b`$ is the *least* upper bound, i.e.
+$`a \vee b = b`$.
 
-**($`\Leftarrow`$, first equivalence.)** Suppose $`a \sqcup b = b`$. Since $`a \sqcup b`$ is an upper bound of $`a`$, we have
-$`a \sqsubseteq a \sqcup b = b`$, hence $`a \sqsubseteq b`$.
+**($`\Leftarrow`$, first equivalence.)** Suppose $`a \vee b = b`$. Since $`a \vee b`$ is an upper bound of $`a`$, we have
+$`a \preceq a \vee b = b`$, hence $`a \preceq b`$.
 
-**(second equivalence.)** Dually, $`a \sqsubseteq b \iff a \sqcap b = a`$: if $`a \sqsubseteq b`$ then $`a`$ is a lower bound of $`\{a, b\}`$ and,
-being $`\sqsubseteq`$ every lower bound's target, the *greatest* one, so $`a \sqcap b = a`$; conversely $`a \sqcap b = a`$ gives
-$`a = a \sqcap b \sqsubseteq b`$. ∎
+**(second equivalence.)** Dually, $`a \preceq b \iff a \wedge b = a`$: if $`a \preceq b`$ then $`a`$ is a lower bound of $`\{a, b\}`$ and,
+being $`\preceq`$ every lower bound's target, the *greatest* one, so $`a \wedge b = a`$; conversely $`a \wedge b = a`$ gives
+$`a = a \wedge b \preceq b`$. ∎
 
-**(converse — the laws rebuild the order.)** Define $`a \sqsubseteq b :\iff a \sqcup b = b`$.
+**(converse — the laws rebuild the order.)** Define $`a \preceq b :\iff a \vee b = b`$.
 
-- *Reflexive:* $`a \sqcup a = a`$ by idempotency, so $`a \sqsubseteq a`$.
-- *Antisymmetric:* if $`a \sqcup b = b`$ and $`b \sqcup a = a`$, then by commutativity $`a = b \sqcup a = a \sqcup b = b`$.
-- *Transitive:* if $`a \sqcup b = b`$ and $`b \sqcup c = c`$, then $`a \sqcup c = a \sqcup (b \sqcup c) = (a \sqcup b) \sqcup c = b \sqcup c = c`$
-  (associativity, then the hypotheses), so $`a \sqsubseteq c`$.
+- *Reflexive:* $`a \vee a = a`$ by idempotency, so $`a \preceq a`$.
+- *Antisymmetric:* if $`a \vee b = b`$ and $`b \vee a = a`$, then by commutativity $`a = b \vee a = a \vee b = b`$.
+- *Transitive:* if $`a \vee b = b`$ and $`b \vee c = c`$, then $`a \vee c = a \vee (b \vee c) = (a \vee b) \vee c = b \vee c = c`$
+  (associativity, then the hypotheses), so $`a \preceq c`$.
 
-That $`\sqcup`$ computes the least upper bound of $`\{a, b\}`$ under this $`\sqsubseteq`$, and $`\sqcap`$ the greatest lower bound, follows
-from absorption: $`a \sqsubseteq a \sqcup b`$ because $`a \sqcup (a \sqcup b) = (a \sqcup a) \sqcup b = a \sqcup b`$; minimality and the meet side are the
-duals, using $`a \sqcup (a \sqcap b) = a`$ to show $`a \sqcap b \sqsubseteq a`$. ∎
+That $`\vee`$ computes the least upper bound of $`\{a, b\}`$ under this $`\preceq`$, and $`\wedge`$ the greatest lower bound, follows
+from absorption: $`a \preceq a \vee b`$ because $`a \vee (a \vee b) = (a \vee a) \vee b = a \vee b`$; minimality and the meet side are the
+duals, using $`a \vee (a \wedge b) = a`$ to show $`a \wedge b \preceq a`$. ∎
 
-> **Consequence for `llattice`.** This is why the docs sometimes speak of $`\sqsubseteq`$ and sometimes of $`\sqcup`$/$`\sqcap`$: they
-> are interchangeable. For `u32`, $`a \sqcup b = b`$ *is* $`\max(a,b) = b`$ *is* $`a \leq b`$. For `HashSet`, $`a \sqcup b = b`$ *is*
+> **Consequence for `llattice`.** This is why the docs sometimes speak of $`\preceq`$ and sometimes of $`\vee`$/$`\wedge`$: they
+> are interchangeable. For `u32`, $`a \vee b = b`$ *is* $`\max(a,b) = b`$ *is* $`a \leq b`$. For `HashSet`, $`a \vee b = b`$ *is*
 > $`a \cup b = b`$ *is* $`a \subseteq b`$.
 
 ---
@@ -126,18 +128,18 @@ plus one axiom:
 
 ![Specialization hierarchy: poset → semilattice → lattice → bounded → complete / distributive → Boolean](figures/lattice-taxonomy.svg)
 
-- **Bounded lattice** — has a $`\bot`$ and a $`\top`$. (Numeric types: `MIN`/`MAX`. `bool`: `false`/`true`.)
-- **Complete lattice** — *every* subset, not just every pair, has a $`\sqcup`$ and $`\sqcap`$. Finite lattices are
+- **Bounded lattice** — has a $`\perp`$ and a $`\mathrm{top}`$. (Numeric types: `MIN`/`MAX`. `bool`: `false`/`true`.)
+- **Complete lattice** — *every* subset, not just every pair, has a $`\vee`$ and $`\wedge`$. Finite lattices are
   automatically complete; $`\mathcal{P}(U)`$ is complete for any $`U`$. Completeness is what guarantees fixed points exist
   (Tarski; see [guides/04](../guides/04-fixpoints-and-analysis.md)).
-- **Distributive lattice** — $`\sqcap`$ distributes over $`\sqcup`$: $`a \sqcap (b \sqcup c) = (a \sqcap b) \sqcup (a \sqcap c)`$. Chains and power
+- **Distributive lattice** — $`\wedge`$ distributes over $`\vee`$: $`a \wedge (b \vee c) = (a \wedge b) \vee (a \wedge c)`$. Chains and power
   sets are distributive.
-- **Boolean lattice** — bounded, distributive, and **complemented**: every $`a`$ has $`\lnot a`$ with $`a \sqcup \lnot a = \top`$ and
-  $`a \sqcap \lnot a = \bot`$. `bool` and $`\mathcal{P}(U)`$ are Boolean.
+- **Boolean lattice** — bounded, distributive, and **complemented**: every $`a`$ has $`\neg a`$ with $`a \vee \neg a = \mathrm{top}`$ and
+  $`a \wedge \neg a = \perp`$. `bool` and $`\mathcal{P}(U)`$ are Boolean.
 
 ### Atoms, coatoms, and `2^U`
 
-An **atom** covers $`\bot`$; a **coatom** is covered by $`\top`$. In $`\mathcal{P}(\{1,2,3\})`$ the singletons are the atoms. A finite
+An **atom** covers $`\perp`$; a **coatom** is covered by $`\mathrm{top}`$. In $`\mathcal{P}(\{1,2,3\})`$ the singletons are the atoms. A finite
 Boolean lattice is determined by its atoms: it is isomorphic to the power set of its atom set, equivalently to a
 product of copies of $`\mathbf{2}`$:
 
@@ -164,9 +166,12 @@ sublattice.
   subspaces in miniature.
 - $`N_5`$ (the pentagon) is not even modular.
 
-Why this matters here: the built-in impls are *all* distributive, and we can now say *why* — the numeric types
-are chains (a chain contains neither $`M_3`$ nor $`N_5`$, since both require incomparable elements), and $`\mathcal{P}(U)`$ is a
-power set (Boolean $`\implies`$ distributive). No built-in impl embeds $`M_3`$ or $`N_5`$. The `Lattice` trait itself, however,
+Why this matters here: the integer, Boolean, and hash-set instances are
+distributive, and we can now say *why* — numeric types are chains (a chain
+contains neither $`M_3`$ nor $`N_5`$, since both require incomparable elements),
+and $`\mathcal{P}(U)`$ is a power set (Boolean $`\implies`$ distributive). An
+`Option<T>` lift inherits this property only when `T` has it. The `Lattice`
+trait itself, however,
 imposes **no** distributivity, so a *user* impl may be non-distributive; the documentation never assumes
 distributivity of arbitrary `Lattice` types.
 
@@ -174,9 +179,9 @@ distributivity of arbitrary `Lattice` types.
 
 ## 6. Where to go next
 
-The laws and structures are in place. The next document confronts the impls with these laws and asks, bluntly,
-*which laws does each built-in impl actually satisfy, and under which notion of equality?* — exposing the two
-places (`f64` with `NaN`, and `Vec`) where the textbook story needs care.
+The laws and structures are in place. The next document connects each built-in
+to executable and formal evidence, then uses raw float and sequence
+counterexamples to explain why conditional instances are not exposed.
 
 → **[03 — Lawfulness and proofs](03-lawfulness-and-proofs.md)**
 
@@ -188,6 +193,6 @@ places (`f64` with `NaN`, and `Vec`) where the textbook story needs care.
    University Press. <https://doi.org/10.1017/CBO9780511809088> — §2.4–2.10 (lattices as algebras, the connecting
    lemma); §4.10 (the $`M_3`$–$`N_5`$ theorem).
 2. Birkhoff, G. (1967). *Lattice Theory* (3rd ed.). AMS Colloquium Publications, Vol. 25.
-   <https://doi.org/10.1090/coll/025> — Chapters I–II.
+   [AMS Colloquium Publications 25](https://bookstore.ams.org/COLL/25), DOI: `10.1090/coll/025` — Chapters I–II.
 3. Tarski, A. (1955). A lattice-theoretical fixpoint theorem and its applications. *Pacific Journal of
    Mathematics*, 5(2), 285–309. <https://doi.org/10.2140/pjm.1955.5.285> — completeness $`\implies`$ fixed points.

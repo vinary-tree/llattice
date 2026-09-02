@@ -5,9 +5,9 @@ from __future__ import annotations
 
 import argparse
 import sys
-import tomllib
 from pathlib import Path
 
+import tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -31,9 +31,7 @@ def validate_release_ref(ref_type: str, ref_name: str, version: str) -> str:
 
 def self_test() -> None:
     assert validate_release_ref("tag", "v0.1.0", "0.1.0") == "v0.1.0"
-    assert validate_release_ref("tag", "v2.0.0-rc.3", "2.0.0-rc.3") == (
-        "v2.0.0-rc.3"
-    )
+    assert validate_release_ref("tag", "v2.0.0-rc.3", "2.0.0-rc.3") == ("v2.0.0-rc.3")
 
     rejected = [
         ("branch", "master", "0.1.0"),

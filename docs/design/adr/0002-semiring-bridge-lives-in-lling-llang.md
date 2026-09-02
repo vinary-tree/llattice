@@ -1,6 +1,6 @@
 # ADR-0002 — The semiring ↔ lattice bridge lives in `lling-llang`, not `llattice`
 
-- **Status:** Accepted
+- **Status:** Accepted; target trait amended by [ADR-0003](0003-layered-lawful-traits.md)
 - **Date:** 2026-06
 - **Deciders:** `vinary-tree` maintainers
 - **Related:** [theory/04 — semiring bridge](../../theory/04-semiring-bridge.md), [ADR-0001](0001-extract-llattice-leaf-crate.md)
@@ -10,15 +10,15 @@
 ## Context
 
 Every **idempotent semiring** (dioid) $`(S, \oplus, \otimes, \bar{0}, \bar{1})`$ carries a join-semilattice for free: its addition $`\oplus`$
-is commutative, associative, and idempotent, so it *is* a `join`, with natural order $`a \sqsubseteq b \iff a \oplus b = b`$ and
-least element $`\bar{0}`$ (proved in [theory/04 §2](../../theory/04-semiring-bridge.md#2-every-idempotent-semiring-carries-a-join-semilattice--for-free)).
+is commutative, associative, and idempotent, so it *is* a `join`, with natural order $`a \preceq b \iff a \oplus b = b`$ and
+least element $`\bar{0}`$ (proved in [theory/04 §2](../../theory/04-semiring-bridge.md#2-every-idempotent-semiring-carries-a-join-semilattice-for-free)).
 It is therefore tempting to provide, *in `llattice`*, a blanket `impl<S: IdempotentSemiring> Lattice for S`.
 
 Two forces push against putting it here:
 
 1. **The leaf invariant.** `llattice` must stay dependency-free and vocabulary-only ([ADR-0001](0001-extract-llattice-leaf-crate.md)).
    Hosting the bridge would require `llattice` to know about semiring types, bloating the leaf.
-2. **The $`\otimes`$/$`\sqcap`$ category error.** A semiring's multiplication $`\otimes`$ is **path composition**, *not* lattice meet
+2. **The $`\otimes`$/$`\wedge`$ category error.** A semiring's multiplication $`\otimes`$ is **path composition**, *not* lattice meet
    ($`\otimes`$ is generally non-idempotent and may be non-commutative). Code that defines the bridge must understand
    this so it never wires $`\otimes`$ to `meet`. That understanding belongs with the semiring types.
 
@@ -29,9 +29,10 @@ is legal only in a crate that owns `IdempotentSemiring` (or `Lattice`). `Idempot
 ## Decision
 
 **The semiring↔lattice bridge lives in `lling-llang`.** `lling-llang` owns `trait IdempotentSemiring`, defines
-the dioid instances (tropical, max-plus, Viterbi, Boolean), and provides
-`impl<S: IdempotentSemiring> Lattice for S` that exposes $`\oplus`$ as `join`. `llattice` knows nothing about
-semirings.
+the dioid instances (tropical, max-plus, Viterbi, Boolean), and exposes
+$`\oplus`$ through `JoinSemilattice`. It must not claim `Lattice` unless an
+independent lawful meet and both absorption proofs exist. `llattice` knows
+nothing about semirings.
 
 ## Consequences
 

@@ -1,25 +1,43 @@
 #!/usr/bin/env bash
 # llattice formal-verification driver: builds the Rocq lattice-law proofs under
-# resource caps (when a user systemd scope is available) and runs the
-# proof-escape gate. llattice has no ABI (its values never cross the vt resource
-# boundary), so there are no TLC models -- only the algebra proofs.
+# a mandatory resource cap and runs the proof-escape and traceability gates.
+# llattice has no ABI (its values never cross the vt resource boundary), so
+# there are no TLC models -- only the algebra proofs.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+evidence="$root/target/verification"
+temporary="$evidence/tmp"
 
-capped_make() {
-  if command -v systemd-run >/dev/null 2>&1 \
-     && systemd-run --user --scope -q true >/dev/null 2>&1; then
-    systemd-run --user --scope -q \
-      -p MemoryMax=8G -p CPUQuota=1800% -p TasksMax=200 \
-      make "$@"
-  else
-    make "$@"
-  fi
-}
+mkdir -p "$temporary"
 
-capped_make -C "$ROOT/proofs/coq" proof-check
-capped_make -C "$ROOT/proofs/coq" -j1
+if [[ "${LLATTICE_FORMAL_SCOPED:-0}" != "1" ]]; then
+  exec systemd-run --user --scope \
+    -p MemoryMax=4G \
+    -p MemorySwapMax=0 \
+    -p CPUQuota=400% \
+    -p TasksMax=64 \
+    --setenv=LLATTICE_FORMAL_SCOPED=1 \
+    --setenv=MAKEFLAGS=-j1 \
+    --setenv=PYTHONDONTWRITEBYTECODE=1 \
+    --setenv=TMPDIR="$temporary" \
+    -- "$root/proofs/verify.sh"
+fi
+
+export MAKEFLAGS="${MAKEFLAGS:--j1}"
+export PYTHONDONTWRITEBYTECODE=1
+export TMPDIR="$temporary"
+
+make -C "$root/proofs/coq" proof-check 2>&1 | tee "$evidence/proof-check.log"
+make -C "$root/proofs/coq" clean 2>&1 | tee "$evidence/proof-clean.log"
+make -C "$root/proofs/coq" -j1 2>&1 | tee "$evidence/rocq.log"
+
+closed_count="$(rg -c '^Closed under the global context$' "$evidence/rocq.log")"
+if [[ "$closed_count" != "7" ]]; then
+  echo "expected 7 axiom-free Rocq assumption reports; found $closed_count" >&2
+  exit 1
+fi
 
 # Lattice invariant registry: hook<->registry closure and spec/test resolution.
-python3 "$ROOT/scripts/check-lattice-invariants.py"
+python3 "$root/scripts/check-lattice-invariants.py" 2>&1 \
+  | tee "$evidence/lattice-invariants.log"

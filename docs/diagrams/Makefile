@@ -1,8 +1,8 @@
 # docs/diagrams/Makefile — render every diagram source in the docs tree to a sibling .svg.
 #
 # Tooling is drawn from the pgmcp `diagramming` toolbox catalog:
-#   *.dot   → Graphviz  (graph_layout)     : dot -Tsvg          (Hasse / order diagrams, flowcharts)
-#   *.d2    → D2        (uml_architecture)  : d2 --layout elk    (taxonomy, dependency, concept maps)
+#   *.dot   → Graphviz  (graph_layout)     : dot -Tsvg:cairo    (Hasse / order diagrams, flowcharts)
+#   *.d2    → D2        (uml_architecture)  : d2 source output  (taxonomy, dependency, concept maps)
 #   *.puml  → PlantUML  (uml_architecture)  : plantuml -tsvg     (class / sequence diagrams)
 #   *.tex   → TikZ/PGF  (diagram_language)  : latex → dvisvgm    (publication-grade math figures)
 #
@@ -33,10 +33,10 @@ all: $(ALL_OUT)
 	@echo "✓ rendered $(words $(ALL_OUT)) diagram(s)."
 
 %.svg: %.dot
-	dot -Tsvg $< -o $@
+	dot -Tsvg:cairo $< -o $@
 
 %.svg: %.d2
-	d2 --layout elk $< $@
+	d2 $< $@
 
 # PlantUML writes <name>.svg next to the source (the @startuml name matches each file's basename).
 %.svg: %.puml

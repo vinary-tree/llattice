@@ -1,12 +1,13 @@
-(** * FloatCaveat — why the f32/f64 lattice is lawful only NaN-free
+(** * FloatCaveat — why raw f32/f64 are excluded from llattice v2
 
-    llattice's `f32`/`f64` [Lattice] impls use `join = max`, `meet = min`
-    (src/lib.rs:126-149). The source itself flags the caveat: they are lawful
-    ONLY on NaN-free values, because IEEE-754 `max`/`min` silently DROP NaN
+    llattice v2 intentionally provides no `f32`/`f64` [Lattice] impl. Such an
+    impl with `join = max` and `meet = min` would be lawful ONLY on NaN-free
+    values, because IEEE-754 `max`/`min` silently DROP NaN
     (`f64::max(NaN, x) == x`) and IEEE equality makes `NaN != NaN`, which breaks
     idempotency under `==`. This file makes the caveat precise -- obligation #26
     (LATT-FLOAT-1): the four laws hold on the NaN-free subset, and NaN is a
-    concrete counterexample to idempotency.
+    concrete counterexample to idempotency. This proof is therefore an
+    exclusion argument, not a conditional contract exposed by the Rust API.
 
     IEEE-754 floats are not modeled with Flocq here (the caveat is purely about
     NaN's total-order and equality anomalies, not rounding); instead the two
@@ -51,7 +52,7 @@ Definition feq (a b : fval) : bool :=
 
 Definition is_nan (a : fval) : bool := match a with FNaN => true | _ => false end.
 
-(** ** LATT-FLOAT-1: lawful on the NaN-free subset *)
+(** ** LATT-FLOAT-1: the candidate algebra is lawful only NaN-free *)
 
 (** On finite (NaN-free) values, join is idempotent under IEEE equality. *)
 Theorem fmax_idempotent_on_finite :
@@ -75,9 +76,9 @@ Proof. intros x y z; simpl; rewrite Z.max_assoc; reflexivity. Qed.
 
 (** ** The caveat, made concrete *)
 
-(** NaN breaks idempotency under IEEE equality: `NaN.join(NaN)` is NaN, but NaN
+(** NaN breaks idempotency under IEEE equality: `max(NaN, NaN)` is NaN, but NaN
     does not equal NaN, so the idempotency law `feq (join a a) a` FAILS. This is
-    exactly why the impl is documented as lawful only NaN-free. *)
+    exactly why raw floats do not implement the v2 traits. *)
 Theorem nan_breaks_idempotency :
   feq (fmax FNaN FNaN) FNaN = false.
 Proof. reflexivity. Qed.
