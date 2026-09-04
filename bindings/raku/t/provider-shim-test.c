@@ -52,6 +52,17 @@ static VtStatus test_many(void *context, const VtResource *others,
 }
 
 int main(void) {
+    if (llattice_raku_provider_abi_version() !=
+            LLATTICE_RAKU_PROVIDER_ABI_VERSION ||
+        llattice_raku_provider_api_revision() !=
+            LLATTICE_RAKU_PROVIDER_API_REVISION ||
+        llattice_raku_provider_capabilities() !=
+            LLATTICE_RAKU_PROVIDER_CAPABILITIES ||
+        llattice_raku_provider_sizeof_interface_id() !=
+            sizeof(VtInterfaceId) ||
+        llattice_raku_provider_sizeof_resource() != sizeof(VtResource)) {
+        return 11;
+    }
     VtInterfaceId domain = {{'l', 'l', '.', 't', 'e', 's', 't', '.', 'v', 'a',
                              'l', '.', '0', '0', '0', '1'}};
     VtResource resource = {0};

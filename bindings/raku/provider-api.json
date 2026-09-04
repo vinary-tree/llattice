@@ -1,0 +1,283 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "llattice-raku-provider",
+  "abiVersion": 1,
+  "apiRevision": 1,
+  "callingConvention": "cdecl",
+  "headerGuard": "LLATTICE_RAKU_PROVIDER_H",
+  "exportMacro": "LLATTICE_RAKU_API",
+  "interopHeader": "vinary_tree_interop.h",
+  "capabilities": {
+    "CONFIGURE_ONCE": 1,
+    "HOST_CONTEXT": 2,
+    "INDEXED_HOST_CONTEXT": 4,
+    "BATCH": 8
+  },
+  "types": {
+    "VtInterfaceId": {
+      "kind": "imported-struct",
+      "rakuType": "Vinary::Tree::Interop::InterfaceId",
+      "ownership": "borrowed-or-value-as-declared",
+      "sizeProbe": "llattice_raku_provider_sizeof_interface_id"
+    },
+    "VtResource": {
+      "kind": "imported-struct",
+      "rakuType": "Vinary::Tree::Interop::RawResource",
+      "ownership": "reference-counted-retain",
+      "sizeProbe": "llattice_raku_provider_sizeof_resource"
+    }
+  },
+  "callbacks": [
+    {
+      "name": "LlatticeRakuDrop",
+      "returnType": "void",
+      "parameters": [
+        {
+          "name": "host_context",
+          "cType": "void*",
+          "direction": "in",
+          "ownership": "borrowed-final-callback",
+          "nullability": "non-null"
+        }
+      ]
+    },
+    {
+      "name": "LlatticeRakuBinary",
+      "returnType": "VtStatus",
+      "parameters": [
+        {
+          "name": "host_context",
+          "cType": "void*",
+          "direction": "in",
+          "ownership": "borrowed-for-call",
+          "nullability": "non-null"
+        },
+        {
+          "name": "other_host_context",
+          "cType": "void*",
+          "direction": "in",
+          "ownership": "borrowed-for-call",
+          "nullability": "nullable-for-foreign-provider"
+        },
+        {
+          "name": "other",
+          "cType": "const VtResource*",
+          "rakuType": "Pointer",
+          "direction": "in",
+          "ownership": "borrowed-for-call",
+          "nullability": "non-null"
+        },
+        {
+          "name": "out_value",
+          "cType": "VtResource*",
+          "rakuType": "Pointer",
+          "direction": "out",
+          "ownership": "owned-retain-on-success",
+          "nullability": "non-null"
+        }
+      ]
+    },
+    {
+      "name": "LlatticeRakuEqual",
+      "returnType": "VtStatus",
+      "parameters": [
+        {
+          "name": "host_context",
+          "cType": "void*",
+          "direction": "in",
+          "ownership": "borrowed-for-call",
+          "nullability": "non-null"
+        },
+        {
+          "name": "other_host_context",
+          "cType": "void*",
+          "direction": "in",
+          "ownership": "borrowed-for-call",
+          "nullability": "nullable-for-foreign-provider"
+        },
+        {
+          "name": "other",
+          "cType": "const VtResource*",
+          "rakuType": "Pointer",
+          "direction": "in",
+          "ownership": "borrowed-for-call",
+          "nullability": "non-null"
+        },
+        {
+          "name": "out_equal",
+          "cType": "uint8_t*",
+          "rakuType": "Pointer",
+          "direction": "out",
+          "ownership": "borrowed-output-slot",
+          "nullability": "non-null"
+        }
+      ]
+    },
+    {
+      "name": "LlatticeRakuBytes",
+      "returnType": "VtStatus",
+      "parameters": [
+        {
+          "name": "host_context",
+          "cType": "void*",
+          "direction": "in",
+          "ownership": "borrowed-for-call",
+          "nullability": "non-null"
+        },
+        {
+          "name": "out_bytes",
+          "cType": "uint8_t*",
+          "rakuType": "Pointer",
+          "direction": "out",
+          "ownership": "borrowed-output-buffer",
+          "nullability": "nullable-if-capacity-is-zero"
+        },
+        {
+          "name": "capacity",
+          "cType": "size_t",
+          "direction": "in",
+          "ownership": "value",
+          "nullability": "not-applicable"
+        },
+        {
+          "name": "out_written",
+          "cType": "size_t*",
+          "rakuType": "Pointer",
+          "direction": "out",
+          "ownership": "borrowed-output-slot",
+          "nullability": "non-null"
+        },
+        {
+          "name": "out_required",
+          "cType": "size_t*",
+          "rakuType": "Pointer",
+          "direction": "out",
+          "ownership": "borrowed-output-slot",
+          "nullability": "non-null"
+        }
+      ]
+    },
+    {
+      "name": "LlatticeRakuMany",
+      "returnType": "VtStatus",
+      "parameters": [
+        {
+          "name": "host_context",
+          "cType": "void*",
+          "direction": "in",
+          "ownership": "borrowed-for-call",
+          "nullability": "non-null"
+        },
+        {
+          "name": "others",
+          "cType": "const VtResource*",
+          "rakuType": "Pointer",
+          "direction": "in",
+          "ownership": "borrowed-array-for-call",
+          "nullability": "nullable-if-count-is-zero"
+        },
+        {
+          "name": "count",
+          "cType": "size_t",
+          "direction": "in",
+          "ownership": "value",
+          "nullability": "not-applicable"
+        },
+        {
+          "name": "out_value",
+          "cType": "VtResource*",
+          "rakuType": "Pointer",
+          "direction": "out",
+          "ownership": "owned-retain-on-success",
+          "nullability": "non-null"
+        }
+      ]
+    }
+  ],
+  "functions": [
+    {
+      "name": "llattice_raku_provider_abi_version",
+      "rakuName": "provider-abi-version",
+      "sinceApiRevision": 1,
+      "returnType": "uint32_t",
+      "parameters": []
+    },
+    {
+      "name": "llattice_raku_provider_api_revision",
+      "rakuName": "provider-api-revision",
+      "sinceApiRevision": 1,
+      "returnType": "uint32_t",
+      "parameters": []
+    },
+    {
+      "name": "llattice_raku_provider_capabilities",
+      "rakuName": "provider-capabilities",
+      "sinceApiRevision": 1,
+      "returnType": "uint64_t",
+      "parameters": []
+    },
+    {
+      "name": "llattice_raku_provider_sizeof_interface_id",
+      "rakuName": "provider-sizeof-interface-id",
+      "sinceApiRevision": 1,
+      "returnType": "size_t",
+      "parameters": []
+    },
+    {
+      "name": "llattice_raku_provider_sizeof_resource",
+      "rakuName": "provider-sizeof-resource",
+      "sinceApiRevision": 1,
+      "returnType": "size_t",
+      "parameters": []
+    },
+    {
+      "name": "llattice_raku_provider_configure",
+      "rakuName": "configure-provider",
+      "sinceApiRevision": 1,
+      "returnType": "VtStatus",
+      "parameters": [
+        { "name": "drop", "cType": "LlatticeRakuDrop", "direction": "in", "ownership": "borrowed-process-lifetime", "nullability": "non-null" },
+        { "name": "join", "cType": "LlatticeRakuBinary", "direction": "in", "ownership": "borrowed-process-lifetime", "nullability": "non-null" },
+        { "name": "meet", "cType": "LlatticeRakuBinary", "direction": "in", "ownership": "borrowed-process-lifetime", "nullability": "non-null" },
+        { "name": "equal", "cType": "LlatticeRakuEqual", "direction": "in", "ownership": "borrowed-process-lifetime", "nullability": "non-null" },
+        { "name": "stable_bytes", "cType": "LlatticeRakuBytes", "direction": "in", "ownership": "borrowed-process-lifetime", "nullability": "non-null" },
+        { "name": "diagnostic", "cType": "LlatticeRakuBytes", "direction": "in", "ownership": "borrowed-process-lifetime", "nullability": "non-null" },
+        { "name": "join_many", "cType": "LlatticeRakuMany", "direction": "in", "ownership": "borrowed-process-lifetime", "nullability": "non-null" },
+        { "name": "meet_many", "cType": "LlatticeRakuMany", "direction": "in", "ownership": "borrowed-process-lifetime", "nullability": "non-null" }
+      ]
+    },
+    {
+      "name": "llattice_raku_provider_create",
+      "rakuName": "create-provider",
+      "sinceApiRevision": 1,
+      "returnType": "VtStatus",
+      "parameters": [
+        { "name": "domain_id", "cType": "const VtInterfaceId*", "direction": "in", "ownership": "borrowed-for-call", "nullability": "non-null" },
+        { "name": "flags", "cType": "uint64_t", "direction": "in", "ownership": "value", "nullability": "not-applicable" },
+        { "name": "host_context", "cType": "void*", "direction": "in", "ownership": "borrowed-until-drop-callback", "nullability": "non-null" },
+        { "name": "out_resource", "cType": "VtResource*", "direction": "out", "ownership": "owned-retain-on-success", "nullability": "non-null" }
+      ]
+    },
+    {
+      "name": "llattice_raku_provider_host_context",
+      "rakuName": "provider-host-context",
+      "sinceApiRevision": 1,
+      "returnType": "VtStatus",
+      "parameters": [
+        { "name": "resource", "cType": "const VtResource*", "direction": "in", "ownership": "borrowed-for-call", "nullability": "non-null" },
+        { "name": "out_host_context", "cType": "void**", "direction": "out", "ownership": "borrowed-provider-context", "nullability": "non-null" }
+      ]
+    },
+    {
+      "name": "llattice_raku_provider_host_context_at",
+      "rakuName": "provider-host-context-at",
+      "sinceApiRevision": 1,
+      "returnType": "VtStatus",
+      "parameters": [
+        { "name": "resources", "cType": "const VtResource*", "rakuType": "Pointer", "direction": "in", "ownership": "borrowed-array-for-call", "nullability": "non-null" },
+        { "name": "index", "cType": "size_t", "direction": "in", "ownership": "value", "nullability": "not-applicable" },
+        { "name": "out_host_context", "cType": "void**", "direction": "out", "ownership": "borrowed-provider-context", "nullability": "non-null" }
+      ]
+    }
+  ]
+}

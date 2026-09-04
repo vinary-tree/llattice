@@ -5,6 +5,14 @@ use v6.d;
 my $root = $?FILE.IO.absolute.IO.parent.parent;
 die 'usage: raku scripts/check-bindings.raku [INTEROP-ROOT]'
     if @*ARGS.elems > 1;
+my $generator = run 'python3',
+    $root.add('scripts/generate-raku-provider-abi.py').Str,
+    '--check', :out, :err;
+my $generator-output =
+    $generator.out.slurp-rest ~ $generator.err.slurp-rest;
+die "generated Raku provider ABI gate failed:\n$generator-output"
+    if $generator.exitcode;
+print $generator-output if $generator-output.chars;
 my $matrix = $root.add('docs/bindings/completeness-matrix.tsv');
 die "missing binding matrix: $matrix" unless $matrix.f;
 
@@ -47,13 +55,21 @@ my @required-files =
     'bindings/julia/LLattice/docs/src/index.md',
     'bindings/raku/META6.json',
     'bindings/raku/Build.rakumod',
+    'bindings/raku/provider-api.json',
+    'bindings/raku/cbits/llattice_raku_provider.h',
     'bindings/raku/lib/LLattice.rakumod',
+    'bindings/raku/lib/LLattice/GeneratedProviderAbi.rakumod',
     'bindings/raku/doc/LLattice.rakudoc';
 for @required-files -> $relative {
     die "binding package is incomplete: $relative" unless $root.add($relative).f;
 }
 
 my $raku-meta = $root.add('bindings/raku/META6.json').slurp;
+die 'Raku package does not provide its generated provider ABI module'
+    unless $raku-meta.contains('"LLattice::GeneratedProviderAbi"');
+my $raku-facade = $root.add('bindings/raku/lib/LLattice.rakumod').slurp;
+die 'Raku provider NativeCall declarations must be generated'
+    if $raku-facade.contains("symbol('llattice_raku_provider_");
 my $dependency-prefix = 'Vinary-Tree-Interop:ver<';
 my $dependency-start = $raku-meta.index($dependency-prefix)
     // die 'Raku package lacks an exact Vinary-Tree-Interop dependency';

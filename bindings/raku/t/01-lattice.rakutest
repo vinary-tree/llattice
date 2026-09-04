@@ -3,7 +3,12 @@ use lib $?FILE.IO.absolute.IO.parent.parent.add('lib').Str;
 use LLattice;
 use Vinary::Tree::Interop;
 
-plan 17;
+plan 20;
+
+is PROVIDER-ABI-VERSION, 1, 'provider facade requires ABI version 1';
+is PROVIDER-API-REVISION, 1, 'provider facade requires API revision 1';
+is PROVIDER-REQUIRED-CAPABILITIES, 15,
+    'provider facade requires configure, host-context, indexed, and batch support';
 
 my @numbers = (1, 2, 3).map({ MaxMin.new(value => $_) });
 is @numbers[0].join(@numbers[2]).value, 3, 'numeric join is max';

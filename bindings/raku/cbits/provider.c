@@ -1,34 +1,9 @@
-#include "vinary_tree_interop.h"
+#include "llattice_raku_provider.h"
 
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-
-#if defined(_WIN32)
-#define LLATTICE_RAKU_API __declspec(dllexport)
-#else
-#define LLATTICE_RAKU_API
-#endif
-
-typedef void (*LlatticeRakuDrop)(void *host_context);
-typedef VtStatus (*LlatticeRakuBinary)(void *host_context,
-                                       void *other_host_context,
-                                       const VtResource *other,
-                                       VtResource *out_value);
-typedef VtStatus (*LlatticeRakuEqual)(void *host_context,
-                                      void *other_host_context,
-                                      const VtResource *other,
-                                      uint8_t *out_equal);
-typedef VtStatus (*LlatticeRakuBytes)(void *host_context,
-                                      uint8_t *out_bytes,
-                                      size_t capacity,
-                                      size_t *out_written,
-                                      size_t *out_required);
-typedef VtStatus (*LlatticeRakuMany)(void *host_context,
-                                     const VtResource *others,
-                                     size_t count,
-                                     VtResource *out_value);
 
 typedef struct LlatticeRakuCallbacks {
     LlatticeRakuDrop drop;
@@ -193,6 +168,26 @@ static const VtResourceVTable RESOURCE_VTABLE = {
     provider_release,
     provider_query,
 };
+
+LLATTICE_RAKU_API uint32_t llattice_raku_provider_abi_version(void) {
+    return LLATTICE_RAKU_PROVIDER_ABI_VERSION;
+}
+
+LLATTICE_RAKU_API uint32_t llattice_raku_provider_api_revision(void) {
+    return LLATTICE_RAKU_PROVIDER_API_REVISION;
+}
+
+LLATTICE_RAKU_API uint64_t llattice_raku_provider_capabilities(void) {
+    return LLATTICE_RAKU_PROVIDER_CAPABILITIES;
+}
+
+LLATTICE_RAKU_API size_t llattice_raku_provider_sizeof_interface_id(void) {
+    return sizeof(VtInterfaceId);
+}
+
+LLATTICE_RAKU_API size_t llattice_raku_provider_sizeof_resource(void) {
+    return sizeof(VtResource);
+}
 
 LLATTICE_RAKU_API VtStatus llattice_raku_provider_configure(
     LlatticeRakuDrop drop,

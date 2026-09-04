@@ -2,6 +2,14 @@ unit module LLattice;
 
 use NativeCall;
 use Vinary::Tree::Interop;
+need LLattice::GeneratedProviderAbi;
+
+our constant PROVIDER-ABI-VERSION is export =
+    LLattice::GeneratedProviderAbi::PROVIDER-ABI-VERSION;
+our constant PROVIDER-API-REVISION is export =
+    LLattice::GeneratedProviderAbi::PROVIDER-API-REVISION;
+our constant PROVIDER-REQUIRED-CAPABILITIES is export =
+    LLattice::GeneratedProviderAbi::PROVIDER-REQUIRED-CAPABILITIES;
 
 =begin pod
 
@@ -141,41 +149,6 @@ my Lock $LIFETIME-LOCK .= new;
 my UInt $NEXT-ID = 1;
 my %STATES;
 
-sub provider-library(--> Str:D) {
-    state $library = %*ENV<LLATTICE_RAKU_PROVIDER_LIB>
-        // %?RESOURCES<libraries/llattice_raku_provider>.IO.Str;
-    $library
-}
-
-sub configure-provider(
-    &drop (Pointer),
-    &join (Pointer, Pointer, Pointer, Pointer --> int32),
-    &meet (Pointer, Pointer, Pointer, Pointer --> int32),
-    &equal (Pointer, Pointer, Pointer, Pointer --> int32),
-    &stable-bytes (Pointer, Pointer, size_t, Pointer, Pointer --> int32),
-    &diagnostic (Pointer, Pointer, size_t, Pointer, Pointer --> int32),
-    &join-many (Pointer, Pointer, size_t, Pointer --> int32),
-    &meet-many (Pointer, Pointer, size_t, Pointer --> int32),
-    --> int32
-) is native(&provider-library)
-    is symbol('llattice_raku_provider_configure') { * }
-
-sub create-provider(
-    InterfaceId,
-    uint64,
-    Pointer,
-    RawResource,
-    --> int32
-) is native(&provider-library) is symbol('llattice_raku_provider_create') { * }
-
-sub provider-host-context(RawResource, Pointer is rw --> int32)
-    is native(&provider-library)
-    is symbol('llattice_raku_provider_host_context') { * }
-
-sub provider-host-context-at(Pointer, size_t, Pointer is rw --> int32)
-    is native(&provider-library)
-    is symbol('llattice_raku_provider_host_context_at') { * }
-
 sub memcpy(Pointer, Pointer, size_t --> Pointer) is native { * }
 
 sub state-id(Pointer:D $context --> UInt:D) {
@@ -188,7 +161,9 @@ sub state(Pointer:D $context --> ProviderState:D) {
 
 sub host-context(RawResource:D $raw --> Pointer) {
     my Pointer $context .= new;
-    my $status = provider-host-context($raw, $context);
+    my $status = LLattice::GeneratedProviderAbi::provider-host-context(
+        $raw, $context,
+    );
     return Pointer unless Status($status) == OK;
     $context
 }
@@ -386,8 +361,10 @@ sub provider-many(
                 Pointer.new($others + $index * nativesizeof(RawResource)),
                 nativesizeof(RawResource));
             my Pointer $other-context .= new;
-            my $context-status = provider-host-context-at(
-                $others, $index, $other-context);
+            my $context-status =
+                LLattice::GeneratedProviderAbi::provider-host-context-at(
+                    $others, $index, $other-context,
+                );
             $other-context = Pointer unless Status($context-status) == OK;
             my $rhs = operand-value($current, $other-context, $raw);
             $result = $is-join ?? $result.join($rhs) !! $result.meet($rhs);
@@ -428,16 +405,19 @@ sub provider-meet-many(
 }
 
 sub ensure-provider-configured(--> Nil) {
-    state $status = configure-provider(
-        &provider-drop,
-        &provider-join,
-        &provider-meet,
-        &provider-equal,
-        &provider-stable-bytes,
-        &provider-diagnostic,
-        &provider-join-many,
-        &provider-meet-many,
-    );
+    state $status = do {
+        LLattice::GeneratedProviderAbi::validate-provider-abi;
+        LLattice::GeneratedProviderAbi::configure-provider(
+            &provider-drop,
+            &provider-join,
+            &provider-meet,
+            &provider-equal,
+            &provider-stable-bytes,
+            &provider-diagnostic,
+            &provider-join-many,
+            &provider-meet-many,
+        )
+    };
     check-status($status, 'raku-lattice-provider-configure');
 }
 
@@ -461,7 +441,7 @@ sub make-provider-raw(
     );
     $LIFETIME-LOCK.protect: { %STATES{$id} = $state }
     my $raw = RawResource.new;
-    my $status = create-provider(
+    my $status = LLattice::GeneratedProviderAbi::create-provider(
         $domain-id,
         $flags,
         nativecast(Pointer, $context),

@@ -40,3 +40,23 @@ operations and use `.join-many`/`.meet-many` for batches.
 See the [complete Raku guide](../../docs/bindings/raku.md) and the installed
 `LLattice` Pod reference for the lifecycle, thread, exception, and security
 contracts.
+
+## Maintain the provider ABI
+
+[`provider-api.json`](provider-api.json) is the single reviewed contract for
+the provider shim's C functions, callback signatures, calling convention,
+capability bits, API-introduction revisions, ownership transfers, and
+nullability rules. Regenerate both the public C header and the Raku NativeCall
+module after changing that model:
+
+```console
+python3 scripts/generate-raku-provider-abi.py --write
+python3 scripts/generate-raku-provider-abi.py --check
+```
+
+Do not edit `cbits/llattice_raku_provider.h` or
+`lib/LLattice/GeneratedProviderAbi.rakumod` by hand. The check fails if either
+output differs byte-for-byte. At runtime, the facade also rejects a provider
+shim with an incompatible ABI version, an older API revision, missing required
+capabilities, or mismatched `VtInterfaceId`/`VtResource` layouts before it
+registers callbacks.

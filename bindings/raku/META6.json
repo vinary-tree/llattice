@@ -7,7 +7,8 @@
   "license": "Apache-2.0",
   "source-url": "https://github.com/vinary-tree/llattice.git",
   "provides": {
-    "LLattice": "lib/LLattice.rakumod"
+    "LLattice": "lib/LLattice.rakumod",
+    "LLattice::GeneratedProviderAbi": "lib/LLattice/GeneratedProviderAbi.rakumod"
   },
   "resources": [
     "libraries/llattice_raku_provider"
