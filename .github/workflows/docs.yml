@@ -2,8 +2,7 @@ name: Julia API documentation
 
 on:
   push:
-    branches: [main]
-    tags: ['v*']
+    branches: [master]
   pull_request:
   workflow_dispatch:
 
@@ -28,7 +27,7 @@ jobs:
             "$candidate" >/dev/null 2>&1; then
             echo "ref=$candidate" >>"$GITHUB_OUTPUT"
           else
-            echo "ref=main" >>"$GITHUB_OUTPUT"
+            echo "ref=master" >>"$GITHUB_OUTPUT"
           fi
       - uses: actions/checkout@v4
         with:
@@ -40,11 +39,12 @@ jobs:
       - name: Build and check the API reference
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LLATTICE_DOCS_DEPLOY: ${{ github.event_name != 'pull_request' && '1' || '0' }}
-          TMPDIR: ${{ runner.temp }}
+          LLATTICE_DOCS_DEPLOY: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && '1' || '0' }}
+          TMPDIR: ${{ github.workspace }}/target/julia-temp
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p "$TMPDIR"
           julia -e '
             using Pkg
             Pkg.activate("bindings/julia/LLattice/docs")
@@ -54,4 +54,11 @@ jobs:
             ])
             Pkg.instantiate()
             include("bindings/julia/LLattice/docs/make.jl")
-          ' 2>&1 | tee "$RUNNER_TEMP/llattice-julia-docs.log"
+          ' 2>&1 | tee target/llattice-julia-docs.log
+      - name: Read back the deployed development page
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: |
+          git fetch --depth 1 origin gh-pages
+          git cat-file -e FETCH_HEAD:dev/index.html
+          git show FETCH_HEAD:dev/index.html > target/llattice-deployed-index.html
+          grep -Fq 'FiniteSetLattice' target/llattice-deployed-index.html
