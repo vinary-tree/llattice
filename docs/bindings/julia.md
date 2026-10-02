@@ -3,6 +3,9 @@
 `LLattice.jl` provides type-stable built-in lattices and lets Julia code expose
 custom immutable values through `VinaryTreeInterop.jl`.
 
+The [public development API reference](https://vinary-tree.github.io/llattice/dev/)
+is built and read back by the repository's Julia documentation workflow.
+
 ## Install a checkout
 
 ```julia

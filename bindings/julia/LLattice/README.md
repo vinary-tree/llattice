@@ -5,6 +5,9 @@ Vinary Tree lattice providers to Julia. It includes numeric max/min, Boolean,
 finite-set, and optional lattices; an exhaustive finite law checker; and a
 versioned resource adapter for custom Julia values.
 
+The [published development API guide](https://vinary-tree.github.io/llattice/dev/)
+includes an executed lattice quickstart and the API reference.
+
 ## Development installation
 
 ```julia
